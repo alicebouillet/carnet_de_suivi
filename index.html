@@ -94,21 +94,24 @@
 
 <!-- ============================================================= -->
 <!-- Supabase (Postgres + Realtime) — synchronisation entre les deux téléphones -->
+<!-- Chargé en script classique (pas de "import"/"module") pour éviter -->
+<!-- tout souci si le fichier est modifié/servi différemment en route. -->
 <!-- ============================================================= -->
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
   // ⚠️ REMPLACE ces valeurs par celles de TON projet Supabase
   // (Dashboard Supabase → Project Settings → API)
-  const SUPABASE_URL = "https://gctxitppsoecfrynaabi.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_Sm7zSpF6csROPVmmAEAXMw_Ycgl_7y9";
+  var SUPABASE_URL = "https://gctxitppsoecfrynaabi.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_Sm7zSpF6csROPVmmAEAXMw_Ycgl_7y9";
 
   try {
-    if (SUPABASE_URL.includes("REMPLACE_MOI") || SUPABASE_ANON_KEY.includes("REMPLACE_MOI")) {
+    if (SUPABASE_URL.indexOf("REMPLACE_MOI") !== -1 || SUPABASE_ANON_KEY.indexOf("REMPLACE_MOI") !== -1) {
       throw new Error("SUPABASE_URL ou SUPABASE_ANON_KEY n'a pas été renseigné dans index.html (encore sur REMPLACE_MOI).");
     }
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.__supabase = supabase;
+    if (typeof supabase === "undefined") {
+      throw new Error("La librairie Supabase ne s'est pas chargée (script précédent). Vérifie la connexion internet.");
+    }
+    window.__supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window.dispatchEvent(new Event("supabase-ready"));
   } catch (err) {
     if (window.showDiag) window.showDiag("Erreur Supabase : " + err.message);
@@ -117,14 +120,13 @@
 </script>
 
 <script>
-  // Si le module Supabase lui-même ne charge pas (bloqué par le réseau, typo dans l'URL du CDN, etc.)
+  // Si l'initialisation ci-dessus n'a jamais abouti pour une raison ou une autre.
   setTimeout(function () {
     if (!window.__supabase && window.showDiag) {
-      window.showDiag("Supabase ne s'est pas initialisé après 6s (vérifie la connexion internet ou que le script module plus haut n'a pas d'erreur).");
+      window.showDiag("Supabase ne s'est pas initialisé après 6s (vérifie la connexion internet ou la config).");
     }
   }, 6000);
 </script>
-
 <!-- React (sans étape de build) -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
