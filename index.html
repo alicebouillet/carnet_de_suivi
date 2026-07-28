@@ -32,6 +32,16 @@
       }
     }, 4000);
   });
+  // Nettoyage : désinscrit tout ancien service worker + vide les caches qu'il aurait pu créer,
+  // au cas où une version précédente de cette page en aurait laissé un actif.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) { r.unregister(); });
+    });
+  }
+  if ("caches" in window) {
+    caches.keys().then(function (keys) { keys.forEach(function (k) { caches.delete(k); }); });
+  }
 </script>
 
 <!-- PWA -->
@@ -1181,12 +1191,5 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
-    });
-  }
-</script>
 </body>
 </html>
