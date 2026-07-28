@@ -103,9 +103,26 @@
   const SUPABASE_URL = "https://gctxitppsoecfrynaabi.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_Sm7zSpF6csROPVmmAEAXMw_Ycgl_7y9";
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  window.__supabase = supabase;
-  window.dispatchEvent(new Event("supabase-ready"));
+  try {
+    if (SUPABASE_URL.includes("REMPLACE_MOI") || SUPABASE_ANON_KEY.includes("REMPLACE_MOI")) {
+      throw new Error("SUPABASE_URL ou SUPABASE_ANON_KEY n'a pas été renseigné dans index.html (encore sur REMPLACE_MOI).");
+    }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.__supabase = supabase;
+    window.dispatchEvent(new Event("supabase-ready"));
+  } catch (err) {
+    if (window.showDiag) window.showDiag("Erreur Supabase : " + err.message);
+    else console.error(err);
+  }
+</script>
+
+<script>
+  // Si le module Supabase lui-même ne charge pas (bloqué par le réseau, typo dans l'URL du CDN, etc.)
+  setTimeout(function () {
+    if (!window.__supabase && window.showDiag) {
+      window.showDiag("Supabase ne s'est pas initialisé après 6s (vérifie la connexion internet ou que le script module plus haut n'a pas d'erreur).");
+    }
+  }, 6000);
 </script>
 
 <!-- React (sans étape de build) -->
