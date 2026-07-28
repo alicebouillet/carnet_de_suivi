@@ -5,6 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Carnet</title>
 
+<script>
+  // Filet de sécurité : si quelque chose casse, on l'affiche à l'écran
+  // au lieu de laisser une page blanche silencieuse.
+  function showDiag(msg) {
+    var el = document.getElementById("diag");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "diag";
+      el.style.cssText = "font-family:monospace;font-size:13px;padding:20px;color:#A94B3D;background:#FBEEE2;white-space:pre-wrap;line-height:1.5;";
+      document.body.appendChild(el);
+    }
+    el.textContent += (el.textContent ? "\n\n" : "") + msg;
+  }
+  window.addEventListener("error", function (e) {
+    showDiag("Erreur : " + e.message + (e.filename ? "\n(" + e.filename.split("/").pop() + ":" + e.lineno + ")" : ""));
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    showDiag("Erreur (promesse) : " + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  });
+  window.addEventListener("load", function () {
+    setTimeout(function () {
+      var root = document.getElementById("root");
+      if (root && root.children.length === 0 && !document.getElementById("diag")) {
+        showDiag("La page ne s'est pas chargée (l'appli ne s'est pas lancée) et aucune erreur n'a été capturée. Vérifie ta connexion internet, ou que SUPABASE_URL / SUPABASE_ANON_KEY sont bien remplis dans index.html.");
+      }
+    }, 4000);
+  });
+</script>
+
 <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#FBEEE2" />
