@@ -1,0 +1,14 @@
+{
+  "name": "Carnet",
+  "short_name": "Carnet",
+  "description": "Alimentation, corps, musculation et planning",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F2EC",
+  "theme_color": "#F3F2EC",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
