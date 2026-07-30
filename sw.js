@@ -1,4 +1,4 @@
-const CACHE = "carnet-v2";
+const CACHE = "carnet-v3";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
