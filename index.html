@@ -850,6 +850,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
       <div className="flex gap-1 mb-5">
         <button onClick={() => setView("seances")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "seances" ? C.muscu : C.lineSoft, color: view === "seances" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "seances" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Séances</button>
         <button onClick={() => setView("repertoire")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "repertoire" ? C.muscu : C.lineSoft, color: view === "repertoire" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "repertoire" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Répertoire machines</button>
+      </div>
 
       {view === "repertoire" ? (
         <div>
