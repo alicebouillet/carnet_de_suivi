@@ -13,7 +13,7 @@
     if (!el) {
       el = document.createElement("div");
       el.id = "diag";
-      el.style.cssText = "font-family:monospace;font-size:13px;padding:20px;color:#A94B3D;background:#FBEEE2;white-space:pre-wrap;line-height:1.5;";
+      el.style.cssText = "font-family:monospace;font-size:13px;padding:20px;color:#A94B3D;background:#FFE5D4;white-space:pre-wrap;line-height:1.5;";
       document.body.appendChild(el);
     }
     el.textContent += (el.textContent ? "\n\n" : "") + msg;
@@ -46,7 +46,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#FBEEE2" />
+<meta name="theme-color" content="#FFE5D4" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -73,7 +73,7 @@
   .justify-between{justify-content:space-between}.justify-center{justify-content:center}
   .flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.flex-shrink-0{flex-shrink:0}
   .gap-1{gap:4px}.gap-1\.5{gap:6px}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}
-  .rounded{border-radius:8px}.rounded-md{border-radius:10px}.rounded-lg{border-radius:18px}.rounded-full{border-radius:999px}.rounded-sm{border-radius:3px}
+  .rounded{border-radius:12px}.rounded-md{border-radius:16px}.rounded-lg{border-radius:24px}.rounded-full{border-radius:999px}.rounded-sm{border-radius:8px}
   .p-1\.5{padding:6px}.px-1{padding-left:4px;padding-right:4px}.px-1\.5{padding-left:6px;padding-right:6px}
   .px-2{padding-left:8px;padding-right:8px}.px-2\.5{padding-left:10px;padding-right:10px}.px-3{padding-left:12px;padding-right:12px}
   .px-3\.5{padding-left:14px;padding-right:14px}.px-4{padding-left:16px;padding-right:16px}.px-5{padding-left:20px;padding-right:20px}
@@ -157,13 +157,13 @@ const { useState, useEffect, useRef, useMemo } = React;
 /* ------------------------------------------------------------------ */
 
 const C = {
-  bg: "#FBEEE2", paper: "#FFFFFF", ink: "#2B3247", inkSoft: "#6C7280", inkFaint: "#A6ABB8",
-  line: "#EFE0D2", lineSoft: "#F6EBDF",
-  nutrition: "#4E9C8A", nutritionSoft: "#E1F0EB",
-  courses: "#E0954F", coursesSoft: "#FCEBD8",
-  corps: "#3B5378", corpsSoft: "#E4E9F0",
-  muscu: "#B8703F", muscuSoft: "#F5E6D9",
-  planning: "#8C4D6B", planningSoft: "#F3E3EC",
+  bg: "#FFE5D4", paper: "#FFFFFF", ink: "#2D3E5F", inkSoft: "#7B8BA3", inkFaint: "#A8B5C8",
+  line: "#F5E0D0", lineSoft: "#FFF3E9",
+  nutrition: "#5DBAA5", nutritionSoft: "#D6F0E8",
+  courses: "#FFB381", coursesSoft: "#FFE8D6",
+  corps: "#4A6FA5", corpsSoft: "#E0EAF6",
+  muscu: "#E89C6F", muscuSoft: "#FFE9DC",
+  planning: "#A57C9E", planningSoft: "#F3E6F1",
 };
 
 const REPAS_TYPES = ["Petit-déjeuner", "Déjeuner", "Dîner", "Collation"];
@@ -332,7 +332,7 @@ function RingProgress({ value, target, color, label, unit, size = 88 }) {
 }
 
 function Card({ children, style = {}, className = "" }) {
-  return <div className={`rounded-lg ${className}`} style={{ background: C.paper, border: `1px solid ${C.line}`, boxShadow: "0 2px 10px rgba(60,40,20,0.05)", ...style }}>{children}</div>;
+  return <div className={`rounded-lg ${className}`} style={{ background: C.paper, border: "none", boxShadow: "0 4px 20px rgba(45,62,95,0.08)", ...style }}>{children}</div>;
 }
 function Eyebrow({ children, color }) {
   return <div className="font-mono uppercase text-xs tracking-widest mb-1" style={{ color }}>{children}</div>;
@@ -349,8 +349,8 @@ function IconBtn({ onClick, children, title, danger }) {
 }
 function PrimaryBtn({ onClick, children, color = C.ink, style = {} }) {
   return (
-    <button onClick={onClick} className="font-body text-sm font-medium inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full transition-opacity"
-      style={{ background: color, color: "#fff", border: "none", cursor: "pointer", ...style }}>
+    <button onClick={onClick} className="font-body text-sm font-medium inline-flex items-center gap-1.5 px-5 py-3 rounded-full transition-opacity"
+      style={{ background: color, color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 4px 12px rgba(45,62,95,0.15)", ...style }}>
       {children}
     </button>
   );
@@ -358,8 +358,8 @@ function PrimaryBtn({ onClick, children, color = C.ink, style = {} }) {
 function TextInput({ value, onChange, placeholder, className = "", type = "text" }) {
   return (
     <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className={`font-body text-sm px-2\.5 py-1\.5 rounded-md outline-none w-full ${className}`}
-      style={{ border: `1px solid ${C.line}`, background: "#FCFCFA", color: C.ink }} />
+      className={`font-body text-sm px-4 py-3 rounded-lg outline-none w-full ${className}`}
+      style={{ border: "none", background: "#F8F9FC", color: C.ink, boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }} />
   );
 }
 function Progress({ label, value, target, color, unit }) {
@@ -449,8 +449,8 @@ function RecettesTab({ recipes, setRecipes, addToGrocery }) {
             Ingrédients optionnels après <span className="font-mono">|</span> : <span className="font-mono">riz:150:g,poivron:2:pièce</span>
           </p>
           <textarea value={importText} onChange={(e) => setImportText(e.target.value)} rows={6}
-            className="font-mono text-xs w-full px-2.5 py-2 rounded-md outline-none mb-2"
-            style={{ border: `1px solid ${C.line}`, background: "#FCFCFA" }}
+            className="font-mono text-xs w-full px-4 py-3 rounded-lg outline-none mb-2"
+            style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}
             placeholder={"Poulet au riz;4;450;40;10;38;poulet:600:g,riz:300:g\nSalade de pois chiches;2;380;35;14;18"} />
           {importError && <p className="font-body text-xs mb-2" style={{ color: "#A94B3D" }}>{importError}</p>}
           <div className="flex gap-2">
@@ -484,7 +484,7 @@ function RecettesTab({ recipes, setRecipes, addToGrocery }) {
             className="font-body text-xs mb-4" style={{ color: C.nutrition, background: "none", border: "none", cursor: "pointer" }}>+ ajouter un ingrédient</button>
           <label className="font-mono text-xs uppercase tracking-widest mb-2 block" style={{ color: C.inkFaint }}>Préparation</label>
           <textarea value={editing.etapes} onChange={(e) => setEditing({ ...editing, etapes: e.target.value })} rows={3}
-            className="font-body text-sm w-full px-2.5 py-2 rounded-md outline-none mb-4" style={{ border: `1px solid ${C.line}`, background: "#FCFCFA" }} placeholder="Étapes de préparation..." />
+            className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-4" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }} placeholder="Étapes de préparation..." />
           <div className="flex gap-2">
             <PrimaryBtn color={C.nutrition} onClick={save}><Check size={15} /> Enregistrer</PrimaryBtn>
             <PrimaryBtn color={C.inkFaint} onClick={() => setEditing(null)}><X size={15} /> Annuler</PrimaryBtn>
@@ -508,10 +508,10 @@ function RecettesTab({ recipes, setRecipes, addToGrocery }) {
               </div>
             </div>
             <div className="flex gap-3 mt-3 flex-wrap">
-              <span className="font-mono text-xs px-2 py-1 rounded" style={{ background: C.nutritionSoft, color: C.nutrition }}>{r.kcal} kcal</span>
-              <span className="font-mono text-xs px-2 py-1 rounded" style={{ background: C.lineSoft, color: C.inkSoft }}>G {r.glucides}g</span>
-              <span className="font-mono text-xs px-2 py-1 rounded" style={{ background: C.lineSoft, color: C.inkSoft }}>L {r.lipides}g</span>
-              <span className="font-mono text-xs px-2 py-1 rounded" style={{ background: C.lineSoft, color: C.inkSoft }}>P {r.proteines}g</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.nutritionSoft, color: C.nutrition }}>{r.kcal} kcal</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>G {r.glucides}g</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>L {r.lipides}g</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>P {r.proteines}g</span>
             </div>
             {expanded === r.id && (
               <div className="mt-3" style={{ paddingTop: 12, borderTop: `1px solid ${C.lineSoft}` }}>
@@ -565,13 +565,13 @@ function CoursesTab({ grocery, setGrocery }) {
       </div>
 
       {showImport && (
-        <Card style={{ padding: 16, marginBottom: 16 }}>
+        <Card style={{ padding: 20, marginBottom: 20 }}>
           <p className="font-body text-xs mb-2" style={{ color: C.inkFaint }}>
             Un article par ligne. Formats acceptés : <span className="font-mono">Pommes</span> ou <span className="font-mono">Pommes;6;pièces</span>
           </p>
           <textarea value={importText} onChange={(e) => setImportText(e.target.value)} rows={5}
-            className="font-mono text-xs w-full px-2.5 py-2 rounded-md outline-none mb-2"
-            style={{ border: `1px solid ${C.line}`, background: "#FCFCFA" }}
+            className="font-mono text-xs w-full px-4 py-3 rounded-lg outline-none mb-2"
+            style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}
             placeholder={"Pommes;6;pièces\nRiz;1;kg\nLait"} />
           <div className="flex gap-2">
             <PrimaryBtn color={C.courses} onClick={parseImport}><Check size={14} /> Importer</PrimaryBtn>
@@ -580,7 +580,7 @@ function CoursesTab({ grocery, setGrocery }) {
         </Card>
       )}
 
-      <Card style={{ padding: 14, marginBottom: 16 }}>
+      <Card style={{ padding: 16, marginBottom: 20 }}>
         <div className="grid gap-2" style={{ gridTemplateColumns: "1fr 90px 90px auto" }}>
           <TextInput value={nom} onChange={setNom} placeholder="Article" />
           <TextInput value={qte} onChange={setQte} placeholder="Qté" />
@@ -694,13 +694,13 @@ function RepasTab({ recipes, meals, setMeals, targets, setTargets }) {
               <button onClick={() => openForm(repas)} className="font-body text-xs inline-flex items-center gap-1" style={{ color: C.nutrition, background: "none", border: "none", cursor: "pointer" }}><Plus size={13} /> ajouter</button>
             </div>
             {form && form.repas === repas && (
-              <Card style={{ padding: 14, marginBottom: 8 }}>
+              <Card style={{ padding: 16, marginBottom: 10 }}>
                 <div className="flex gap-2 mb-3">
-                  <button onClick={() => setForm({ ...form, mode: "manuel" })} className="font-body text-xs px-2.5 py-1 rounded-full" style={{ background: form.mode === "manuel" ? C.nutrition : C.lineSoft, color: form.mode === "manuel" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Manuel</button>
-                  <button onClick={() => setForm({ ...form, mode: "recette" })} className="font-body text-xs px-2.5 py-1 rounded-full" style={{ background: form.mode === "recette" ? C.nutrition : C.lineSoft, color: form.mode === "recette" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Depuis une recette</button>
+                  <button onClick={() => setForm({ ...form, mode: "manuel" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.mode === "manuel" ? C.nutrition : C.lineSoft, color: form.mode === "manuel" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.mode === "manuel" ? "0 2px 8px rgba(93,186,165,0.3)" : "none" }}>Manuel</button>
+                  <button onClick={() => setForm({ ...form, mode: "recette" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.mode === "recette" ? C.nutrition : C.lineSoft, color: form.mode === "recette" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.mode === "recette" ? "0 2px 8px rgba(93,186,165,0.3)" : "none" }}>Depuis une recette</button>
                 </div>
                 {form.mode === "recette" ? (
-                  <select value={form.recipeId} onChange={(e) => pickRecipe(e.target.value)} className="font-body text-sm w-full px-2.5 py-1.5 rounded-md mb-3" style={{ border: `1px solid ${C.line}` }}>
+                  <select value={form.recipeId} onChange={(e) => pickRecipe(e.target.value)} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
                     <option value="">Choisir une recette…</option>
                     {recipes.map((r) => <option key={r.id} value={r.id}>{r.nom}</option>)}
                   </select>
@@ -848,9 +848,8 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
       </div>
 
       <div className="flex gap-1 mb-5">
-        <button onClick={() => setView("seances")} className="font-body text-xs px-3 py-1.5 rounded-full" style={{ background: view === "seances" ? C.muscu : C.lineSoft, color: view === "seances" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Séances</button>
-        <button onClick={() => setView("repertoire")} className="font-body text-xs px-3 py-1.5 rounded-full" style={{ background: view === "repertoire" ? C.muscu : C.lineSoft, color: view === "repertoire" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Répertoire machines</button>
-      </div>
+        <button onClick={() => setView("seances")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "seances" ? C.muscu : C.lineSoft, color: view === "seances" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "seances" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Séances</button>
+        <button onClick={() => setView("repertoire")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "repertoire" ? C.muscu : C.lineSoft, color: view === "repertoire" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "repertoire" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Répertoire machines</button>
 
       {view === "repertoire" ? (
         <div>
@@ -862,7 +861,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
               </div>
               <label className="font-mono text-xs" style={{ color: C.inkFaint }}>Réglages (position du siège, amplitude...)</label>
               <textarea value={machineForm.reglages} onChange={(e) => setMachineForm({ ...machineForm, reglages: e.target.value })} rows={2}
-                className="font-body text-sm w-full px-2.5 py-2 rounded-md outline-none mb-3 mt-1" style={{ border: `1px solid ${C.line}`, background: "#FCFCFA" }} placeholder="Ex: siège position 4, dossier incliné 2" />
+                className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-3 mt-1" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }} placeholder="Ex: siège position 4, dossier incliné 2" />
               <div className="flex gap-2">
                 <PrimaryBtn color={C.muscu} onClick={saveMachine}><Check size={14} /> Enregistrer</PrimaryBtn>
                 <PrimaryBtn color={C.inkFaint} onClick={() => setMachineForm(null)}><X size={14} /> Annuler</PrimaryBtn>
@@ -880,7 +879,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
                     <IconBtn danger onClick={() => removeMachine(m.id)}><Trash2 size={14} /></IconBtn>
                   </div>
                 </div>
-                {m.poids && <span className="font-mono text-xs px-2 py-1 rounded inline-block mt-2" style={{ background: C.muscuSoft, color: C.muscu }}>{m.poids} kg</span>}
+                {m.poids && <span className="font-mono text-xs px-3 py-1.5 rounded-full inline-block mt-2" style={{ background: C.muscuSoft, color: C.muscu }}>{m.poids} kg</span>}
                 {m.reglages && <p className="font-body text-xs mt-2" style={{ color: C.inkSoft }}>{m.reglages}</p>}
               </Card>
             ))}
@@ -889,7 +888,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
       ) : (
         <React.Fragment>
           {form && (
-            <Card style={{ padding: 20, marginBottom: 16 }}>
+            <Card style={{ padding: 20, marginBottom: 20 }}>
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <TextInput type="date" value={form.date} onChange={(v) => setForm({ ...form, date: v })} />
                 <TextInput value={form.nom} onChange={(v) => setForm({ ...form, nom: v })} placeholder="Nom de la séance (ex: Push day)" />
@@ -902,7 +901,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
                   </div>
                   {machines.length > 0 && (
                     <select value="" onChange={(e) => { const m = machines.find((mm) => mm.id === e.target.value); if (!m) return; updateEx(ex.id, { nom: ex.nom || m.nom, series: ex.series.map((s, i) => (i === 0 && !s.poids ? { ...s, poids: m.poids } : s)) }); }}
-                      className="font-mono text-xs px-2 py-1 rounded-md mb-2" style={{ border: `1px solid ${C.line}`, color: C.inkSoft, background: "#FCFCFA" }}>
+                      className="font-mono text-xs px-3 py-2 rounded-lg mb-2" style={{ border: "none", color: C.inkSoft, background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
                       <option value="">↳ insérer un poids du répertoire…</option>
                       {machines.map((m) => <option key={m.id} value={m.id}>{m.nom} — {m.poids ? `${m.poids}kg` : "?"}</option>)}
                     </select>
@@ -937,7 +936,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
             <Card style={{ padding: 16, marginBottom: 16 }}>
               <div className="flex items-center justify-between mb-3">
                 <span className="font-mono text-xs uppercase tracking-widest" style={{ color: C.inkFaint }}>Progression</span>
-                <select value={trackedEx} onChange={(e) => setTrackedEx(e.target.value)} className="font-body text-sm px-2 py-1 rounded-md" style={{ border: `1px solid ${C.line}` }}>
+                <select value={trackedEx} onChange={(e) => setTrackedEx(e.target.value)} className="font-body text-sm px-4 py-2 rounded-lg" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
                   <option value="">Choisir un exercice…</option>
                   {exerciseNames.map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -1000,9 +999,8 @@ function PlanningTab({ items, setItems, recipes }) {
       </div>
 
       <div className="flex gap-1 mb-5">
-        <button onClick={() => setView("jours")} className="font-body text-xs px-3 py-1.5 rounded-full" style={{ background: view === "jours" ? C.planning : C.lineSoft, color: view === "jours" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Planning libre</button>
-        <button onClick={() => setView("menu")} className="font-body text-xs px-3 py-1.5 rounded-full" style={{ background: view === "menu" ? C.planning : C.lineSoft, color: view === "menu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Menu des repas</button>
-      </div>
+        <button onClick={() => setView("jours")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "jours" ? C.planning : C.lineSoft, color: view === "jours" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "jours" ? "0 2px 8px rgba(165,124,158,0.3)" : "none" }}>Planning libre</button>
+        <button onClick={() => setView("menu")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "menu" ? C.planning : C.lineSoft, color: view === "menu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "menu" ? "0 2px 8px rgba(165,124,158,0.3)" : "none" }}>Menu des repas</button>
 
       {view === "menu" ? (
         <div className="overflow-x-auto">
@@ -1064,20 +1062,20 @@ function PlanningTab({ items, setItems, recipes }) {
           <div className="flex gap-1.5 mb-4 flex-wrap">
             {days.map((date, i) => {
               const on = form.dates.has(date);
-              return <button key={date} onClick={() => toggleDay(date)} className="font-mono text-xs px-2.5 py-1.5 rounded-md" style={{ background: on ? C.planning : C.lineSoft, color: on ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>{JOURS[i]}</button>;
+              return <button key={date} onClick={() => toggleDay(date)} className="font-mono text-xs px-4 py-2 rounded-lg" style={{ background: on ? C.planning : C.lineSoft, color: on ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: on ? "0 2px 8px rgba(165,124,158,0.3)" : "none" }}>{JOURS[i]}</button>;
             })}
           </div>
           <div className="flex gap-2 mb-3">
-            <button onClick={() => setForm({ ...form, type: "repas" })} className="font-body text-xs px-2.5 py-1 rounded-full" style={{ background: form.type === "repas" ? C.nutrition : C.lineSoft, color: form.type === "repas" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Repas</button>
-            <button onClick={() => setForm({ ...form, type: "muscu" })} className="font-body text-xs px-2.5 py-1 rounded-full" style={{ background: form.type === "muscu" ? C.muscu : C.lineSoft, color: form.type === "muscu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer" }}>Musculation</button>
+            <button onClick={() => setForm({ ...form, type: "repas" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.type === "repas" ? C.nutrition : C.lineSoft, color: form.type === "repas" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.type === "repas" ? "0 2px 8px rgba(93,186,165,0.3)" : "none" }}>Repas</button>
+            <button onClick={() => setForm({ ...form, type: "muscu" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.type === "muscu" ? C.muscu : C.lineSoft, color: form.type === "muscu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.type === "muscu" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Musculation</button>
           </div>
           {form.type === "repas" && (
-            <select value={form.repasType} onChange={(e) => setForm({ ...form, repasType: e.target.value })} className="font-body text-sm w-full px-2.5 py-1.5 rounded-md mb-3" style={{ border: `1px solid ${C.line}` }}>
+            <select value={form.repasType} onChange={(e) => setForm({ ...form, repasType: e.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
               {REPAS_TYPES.map((rt) => <option key={rt} value={rt}>{rt}</option>)}
             </select>
           )}
           {form.type === "repas" && recipes.length > 0 && (
-            <select value={form.recipeId} onChange={(e) => setForm({ ...form, recipeId: e.target.value })} className="font-body text-sm w-full px-2.5 py-1.5 rounded-md mb-3" style={{ border: `1px solid ${C.line}` }}>
+            <select value={form.recipeId} onChange={(e) => setForm({ ...form, recipeId: e.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
               <option value="">— ou saisir un libellé libre —</option>
               {recipes.map((r) => <option key={r.id} value={r.id}>{r.nom}</option>)}
             </select>
@@ -1154,20 +1152,20 @@ function App() {
   return (
     <div className="font-body" style={{ minHeight: "100vh", background: C.bg }}>
       <div className="max-w-4xl mx-auto px-5 pt-8 pb-24">
-        <header className="flex items-end justify-between mb-6 flex-wrap gap-3">
+        <header className="flex items-end justify-between mb-8 flex-wrap gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-3xl" style={{ color: C.ink }}>Carnet</h1>
-              <span title={synced ? "synchronisé" : "synchronisation…"} style={{ width: 7, height: 7, borderRadius: 999, background: synced ? C.nutrition : "#C9A227", display: "inline-block" }} />
-              <IconBtn onClick={exportData} title="Exporter toutes les données (JSON)"><Download size={15} /></IconBtn>
+            <div className="flex items-center gap-3">
+              <h1 className="font-display text-3xl font-bold" style={{ color: C.ink }}>Carnet</h1>
+              <span title={synced ? "synchronisé" : "synchronisation…"} style={{ width: 9, height: 9, borderRadius: 999, background: synced ? C.nutrition : "#FFB381", display: "inline-block", boxShadow: synced ? "0 0 0 3px rgba(93,186,165,0.2)" : "0 0 0 3px rgba(255,179,129,0.2)" }} />
+              <IconBtn onClick={exportData} title="Exporter toutes les données (JSON)"><Download size={16} /></IconBtn>
             </div>
-            <p className="font-mono text-xs mt-1" style={{ color: C.inkFaint, letterSpacing: "0.08em" }}>ALIMENTATION · CORPS · MUSCULATION · PLANNING</p>
+            <p className="font-mono text-xs mt-2" style={{ color: C.inkFaint, letterSpacing: "0.08em" }}>ALIMENTATION · CORPS · MUSCULATION · PLANNING</p>
           </div>
           {needsProfile && (
-            <div className="flex rounded-full p-1" style={{ background: C.lineSoft }}>
+            <div className="flex rounded-full p-1.5" style={{ background: "#FFFFFF", boxShadow: "0 4px 12px rgba(45,62,95,0.1)" }}>
               {["p1", "p2"].map((pid) => (
-                <button key={pid} onClick={() => setProfileId(pid)} className="font-body text-sm px-3 py-1 rounded-full transition-colors"
-                  style={{ background: profileId === pid ? C.paper : "transparent", color: profileId === pid ? C.ink : C.inkFaint, boxShadow: profileId === pid ? "0 1px 2px rgba(0,0,0,0.06)" : "none", border: "none", cursor: "pointer" }}>
+                <button key={pid} onClick={() => setProfileId(pid)} className="font-body text-sm px-4 py-2 rounded-full transition-all"
+                  style={{ background: profileId === pid ? C.corps : "transparent", color: profileId === pid ? "#fff" : C.inkSoft, boxShadow: profileId === pid ? "0 2px 8px rgba(74,111,165,0.3)" : "none", border: "none", cursor: "pointer" }}>
                   <input value={data.profiles[pid].name} onChange={(e) => update({ profiles: { ...data.profiles, [pid]: { name: e.target.value } } })} onClick={(e) => e.stopPropagation()}
                     className="bg-transparent outline-none text-center" style={{ color: "inherit", font: "inherit", border: "none", width: 96 }} />
                 </button>
@@ -1176,14 +1174,13 @@ function App() {
           )}
         </header>
 
-        <nav className="flex gap-1 mb-6 flex-wrap" style={{ borderBottom: `1px solid ${C.line}` }}>
+        <nav className="flex gap-2 mb-6 flex-wrap">
           {TABS.map((t) => {
             const Icon2 = t.icon; const active = tab === t.id;
             return (
-              <button key={t.id} onClick={() => setTab(t.id)} className="font-body text-sm px-3.5 py-2.5 inline-flex items-center gap-1.5 relative -mb-px"
-                style={{ color: active ? t.color : C.inkFaint, background: "none", border: "none", cursor: "pointer" }}>
-                <Icon2 size={15} />{t.label}
-                {active && <span className="absolute" style={{ left: 0, right: 0, bottom: 0, height: 2.5, borderRadius: 999, background: t.color }} />}
+              <button key={t.id} onClick={() => setTab(t.id)} className="font-body text-sm px-4 py-3 inline-flex items-center gap-1.5 rounded-full transition-all"
+                style={{ color: active ? "#fff" : C.inkSoft, background: active ? t.color : "transparent", border: "none", cursor: "pointer", boxShadow: active ? "0 4px 12px rgba(45,62,95,0.15)" : "none" }}>
+                <Icon2 size={16} />{t.label}
               </button>
             );
           })}
