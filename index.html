@@ -32,15 +32,15 @@
       }
     }, 4000);
   });
-  // Nettoyage : désinscrit tout ancien service worker + vide les caches qu'il aurait pu créer,
-  // au cas où une version précédente de cette page en aurait laissé un actif.
+  // Enregistrement du service worker pour le mode offline (PWA)
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function (regs) {
-      regs.forEach(function (r) { r.unregister(); });
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").then(function (registration) {
+        console.log("Service Worker enregistré avec succès:", registration.scope);
+      }).catch(function (error) {
+        console.log("Échec de l'enregistrement du Service Worker:", error);
+      });
     });
-  }
-  if ("caches" in window) {
-    caches.keys().then(function (keys) { keys.forEach(function (k) { caches.delete(k); }); });
   }
 </script>
 
@@ -117,6 +117,10 @@
   try {
     if (SUPABASE_URL.indexOf("REMPLACE_MOI") !== -1 || SUPABASE_ANON_KEY.indexOf("REMPLACE_MOI") !== -1) {
       throw new Error("SUPABASE_URL ou SUPABASE_ANON_KEY n'a pas été renseigné dans index.html (encore sur REMPLACE_MOI).");
+    }
+    // Vérification du format de la clé (les clés Supabase anon standard commencent par "eyJ")
+    if (SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith("eyJ") && !SUPABASE_ANON_KEY.startsWith("sb_")) {
+      console.warn("⚠️ Format de clé Supabase inhabituel. Vérifiez que c'est bien votre clé anon public depuis le Dashboard Supabase.");
     }
     if (typeof supabase === "undefined") {
       throw new Error("La librairie Supabase ne s'est pas chargée (script précédent). Vérifie la connexion internet.");
