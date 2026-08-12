@@ -108,6 +108,18 @@
   .whitespace-pre-wrap{white-space:pre-wrap}.outline-none{outline:none}.bg-transparent{background:transparent}
   a{color:inherit}
   @media (min-width: 640px) { .sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .app-shell { min-height: 100vh; display: flex; }
+  .sidebar { width: 230px; flex: 0 0 230px; padding: 28px 16px; border-right: 1px solid rgba(230,222,209,.9); background: rgba(255,253,248,.68); }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
+  .sidebar-nav button { width: 100%; justify-content: flex-start; }
+  .content-area { flex: 1; min-width: 0; }
+  @media (max-width: 700px) {
+    .app-shell { display: block; }
+    .sidebar { width: 100%; padding: 14px 16px 10px; border-right: none; border-bottom: 1px solid rgba(230,222,209,.9); }
+    .sidebar-brand { display: none; }
+    .sidebar-nav { flex-direction: row; overflow-x: auto; padding-bottom: 2px; }
+    .sidebar-nav button { width: auto; flex: 0 0 auto; justify-content: center; white-space: nowrap; }
+  }
 </style>
 </head>
 <body>
@@ -635,6 +647,57 @@ function CoursesTab({ grocery, setGrocery }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Onglet: Quantités par profil                                         */
+/* ------------------------------------------------------------------ */
+
+function QuantitesTab({ grocery, setGrocery, profiles }) {
+  const ingredients = grocery.filter((item) => item.nom && item.nom.trim());
+  const getQuantity = (item, profileId) => item.quantities?.[profileId] ?? (profileId === "p1" ? item.qte : "");
+  const setQuantity = (item, profileId, value) => {
+    setGrocery(grocery.map((current) => current.id === item.id
+      ? { ...current, quantities: { ...(current.quantities || {}), [profileId]: value } }
+      : current));
+  };
+
+  return (
+    <div>
+      <div className="mb-5">
+        <Eyebrow color={C.courses}>Repères personnels</Eyebrow>
+        <h2 className="font-display text-2xl" style={{ color: C.ink }}>Quantités par ingrédient</h2>
+        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Une même recette, deux besoins différents. Les quantités sont liées à ta liste de courses.</p>
+      </div>
+      {ingredients.length === 0 ? (
+        <EmptyState icon={<ShoppingCart size={28} />} color={C.courses} text="Ajoutez d’abord vos ingrédients dans l’onglet Courses." />
+      ) : (
+        <Card style={{ overflow: "hidden" }}>
+          <div className="grid gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", background: C.lineSoft, color: C.inkFaint }}>
+            <span className="font-mono text-xs uppercase tracking-widest">Ingrédient</span>
+            <span className="font-mono text-xs text-center">{profiles.p1.name}</span>
+            <span className="font-mono text-xs text-center">{profiles.p2.name}</span>
+            <span className="font-mono text-xs text-center">Unité</span>
+          </div>
+          {ingredients.map((item, index) => (
+            <div key={item.id} className="grid gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
+              <span className="font-body text-sm" style={{ color: C.ink }}>{item.nom}</span>
+              {[
+                ["p1", profiles.p1.name, C.nutrition],
+                ["p2", profiles.p2.name, C.corps],
+              ].map(([profileId, profileName, color]) => (
+                <input key={profileId} aria-label={`${item.nom} ${profileName}`} value={getQuantity(item, profileId)}
+                  onChange={(event) => setQuantity(item, profileId, event.target.value)} placeholder="—"
+                  className="font-mono text-sm text-center rounded-sm outline-none"
+                  style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color }} />
+              ))}
+              <span className="font-mono text-xs text-center" style={{ color: C.inkFaint }}>{item.unite || "g"}</span>
+            </div>
+          ))}
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Onglet: Repas / Macros                                               */
 /* ------------------------------------------------------------------ */
 
@@ -1108,6 +1171,7 @@ function PlanningTab({ items, setItems, recipes }) {
 const TABS = [
   { id: "recettes", label: "Recettes", icon: BookOpen, color: C.nutrition },
   { id: "courses", label: "Courses", icon: ShoppingCart, color: C.courses },
+  { id: "quantites", label: "Quantités", icon: Scale, color: C.courses },
   { id: "repas", label: "Repas", icon: Flame, color: C.nutrition },
   { id: "corps", label: "Corps", icon: Scale, color: C.corps },
   { id: "muscu", label: "Muscu", icon: Dumbbell, color: C.muscu },
@@ -1117,6 +1181,7 @@ const TABS = [
 function App() {
   const [tab, setTab] = useState("recettes");
   const [profileId, setProfileId] = useState("p1");
+  const [editingProfile, setEditingProfile] = useState(null);
   const { data, update, ready, synced } = useSyncedStore();
 
   const addToGrocery = (ingredients) => {
@@ -1149,6 +1214,7 @@ function App() {
   const TabComponent = {
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
+    quantites: <QuantitesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} profiles={data.profiles} />,
     repas: <RepasTab recipes={data.recipes} meals={data.meals[profileId]} setMeals={(v) => update({ meals: { ...data.meals, [profileId]: v } })}
       targets={data.targets[profileId]} setTargets={(v) => update({ targets: { ...data.targets, [profileId]: v } })} />,
     corps: <CorpsTab entries={data.body[profileId]} setEntries={(v) => update({ body: { ...data.body, [profileId]: v } })} />,
@@ -1157,10 +1223,29 @@ function App() {
     planning: <PlanningTab items={data.planning[profileId]} setItems={(v) => update({ planning: { ...data.planning, [profileId]: v } })} recipes={data.recipes} />,
   }[tab];
 
-  const needsProfile = ["repas", "corps", "muscu", "planning"].includes(tab);
+  const needsProfile = ["repas", "corps", "muscu", "planning", "quantites"].includes(tab);
 
   return (
     <div className="font-body" style={{ minHeight: "100vh", background: `radial-gradient(circle at 8% 0%, rgba(255,253,248,0.95) 0, rgba(255,253,248,0) 30%), linear-gradient(135deg, ${C.bg} 0%, #EEE5D8 100%)` }}>
+      <div className="app-shell">
+        <aside className="sidebar">
+          <div className="sidebar-brand mb-6">
+            <div className="font-display text-2xl font-bold" style={{ color: C.ink }}>Carnet</div>
+            <div className="font-mono text-xs mt-1" style={{ color: C.inkFaint }}>prendre soin de soi</div>
+          </div>
+          <nav className="sidebar-nav" aria-label="Navigation principale">
+            {TABS.map((t) => {
+              const Icon2 = t.icon; const active = tab === t.id;
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)} className="font-body text-sm px-4 py-3 inline-flex items-center gap-1.5 rounded-full transition-all"
+                  style={{ color: active ? "#fff" : C.inkSoft, background: active ? t.color : "transparent", border: "none", cursor: "pointer", boxShadow: active ? "0 4px 12px rgba(45,62,95,0.15)" : "none" }}>
+                  <Icon2 size={16} />{t.label}
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+        <main className="content-area">
       <div className="max-w-4xl mx-auto px-5 pt-8 pb-24">
         <header className="flex items-end justify-between mb-8 flex-wrap gap-4">
           <div>
@@ -1176,7 +1261,7 @@ function App() {
               {["p1", "p2"].map((pid) => (
                 <button key={pid} onClick={() => setProfileId(pid)} className="font-body text-sm px-4 py-2 rounded-full transition-all"
                   style={{ background: profileId === pid ? C.corps : "transparent", color: profileId === pid ? "#fff" : C.inkSoft, boxShadow: profileId === pid ? "0 2px 8px rgba(74,111,165,0.3)" : "none", border: "none", cursor: "pointer" }}>
-                  <input value={data.profiles[pid].name} onChange={(e) => update({ profiles: { ...data.profiles, [pid]: { name: e.target.value } } })} onClick={(e) => e.stopPropagation()}
+                  <input value={data.profiles[pid].name} readOnly={editingProfile !== pid} title="Double-cliquez pour renommer" onDoubleClick={(e) => { e.stopPropagation(); setEditingProfile(pid); }} onBlur={() => setEditingProfile(null)} onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }} onChange={(e) => update({ profiles: { ...data.profiles, [pid]: { name: e.target.value } } })} onClick={(e) => e.stopPropagation()}
                     className="bg-transparent outline-none text-center" style={{ color: "inherit", font: "inherit", border: "none", width: 96 }} />
                 </button>
               ))}
@@ -1184,19 +1269,9 @@ function App() {
           )}
         </header>
 
-        <nav className="flex gap-2 mb-6 flex-wrap rounded-md p-1.5" style={{ background: "rgba(255,253,248,0.58)", border: `1px solid ${C.line}` }}>
-          {TABS.map((t) => {
-            const Icon2 = t.icon; const active = tab === t.id;
-            return (
-              <button key={t.id} onClick={() => setTab(t.id)} className="font-body text-sm px-4 py-3 inline-flex items-center gap-1.5 rounded-full transition-all"
-                style={{ color: active ? "#fff" : C.inkSoft, background: active ? t.color : "transparent", border: "none", cursor: "pointer", boxShadow: active ? "0 4px 12px rgba(45,62,95,0.15)" : "none" }}>
-                <Icon2 size={16} />{t.label}
-              </button>
-            );
-          })}
-        </nav>
-
         {TabComponent}
+      </div>
+        </main>
       </div>
     </div>
   );
