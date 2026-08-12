@@ -91,7 +91,7 @@
   .mb-4{margin-bottom:16px}.mb-5{margin-bottom:20px}.mb-6{margin-bottom:24px}.mt-1{margin-top:4px}.mt-2{margin-top:8px}
   .mt-3{margin-top:12px}.mt-4{margin-top:16px}.mt-16{margin-top:64px}.-mb-px{margin-bottom:-1px}
   .w-4{width:16px}.h-4{height:16px}.w-full{width:100%}.min-w-0{min-width:0}
-  .max-w-4xl{max-width:896px}.mx-auto{margin-left:auto;margin-right:auto}
+  .max-w-4xl{max-width:1180px}.mx-auto{margin-left:auto;margin-right:auto}
   .text-xs{font-size:12px}.text-sm{font-size:14px}.text-base{font-size:16px}.text-lg{font-size:18px}
   .text-xl{font-size:20px}.text-2xl{font-size:24px}.text-3xl{font-size:30px}
   .font-medium{font-weight:500}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}
@@ -109,7 +109,7 @@
   a{color:inherit}
   @media (min-width: 640px) { .sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
   .app-shell { min-height: 100vh; display: flex; }
-  .sidebar { width: 230px; flex: 0 0 230px; padding: 28px 16px; border-right: 1px solid rgba(230,222,209,.9); background: rgba(255,253,248,.68); }
+  .sidebar { width: 248px; flex: 0 0 248px; padding: 28px 18px; border-right: 1px solid rgba(230,222,209,.9); background: rgba(255,253,248,.68); }
   .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
   .sidebar-nav button { width: 100%; justify-content: flex-start; }
   .content-area { flex: 1; min-width: 0; }
@@ -126,6 +126,7 @@
     [style*="110px repeat(7"] { grid-template-columns: 70px repeat(7, minmax(92px, 1fr)) !important; min-width: 714px !important; }
     .content-area .text-3xl { font-size: 28px; }
     .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .home-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 480px) {
     .quantity-grid { grid-template-columns: 1fr 1fr 1fr !important; }
@@ -133,8 +134,11 @@
     .quantity-grid > :nth-child(2), .quantity-grid > :nth-child(3), .quantity-grid > :nth-child(4) { min-width: 0; }
     .quantity-table-row { grid-template-columns: 1fr 1fr 1fr !important; }
     .quantity-table-row > :first-child { grid-column: 1 / -1; }
+    .machine-table-row { grid-template-columns: 1fr 1fr 1fr !important; }
+    .machine-table-row > :first-child { grid-column: 1 / -1; }
     .content-area .text-2xl { font-size: 22px; }
     .content-area .text-3xl { font-size: 26px; }
+    .home-shortcuts { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -724,6 +728,62 @@ function QuantitesTab({ quantities, setQuantities, profiles }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Onglet: Poids des machines                                           */
+/* ------------------------------------------------------------------ */
+
+function MachinesPoidsTab({ machinesByProfile, setMachinesByProfile, profiles }) {
+  const profilesMachines = machinesByProfile || { p1: [], p2: [] };
+  const machineRows = [...new Map(
+    [...(profilesMachines.p1 || []), ...(profilesMachines.p2 || [])]
+      .filter((machine) => machine.nom && machine.nom.trim())
+      .map((machine) => [machine.nom.trim().toLowerCase(), machine.nom.trim()])
+  )].map(([key, nom]) => ({ key, nom }));
+
+  const getMachine = (profileId, key) => (profilesMachines[profileId] || []).find((machine) => machine.nom.trim().toLowerCase() === key);
+  const setWeight = (profileId, row, poids) => {
+    const current = profilesMachines[profileId] || [];
+    const existing = getMachine(profileId, row.key);
+    const next = existing
+      ? current.map((machine) => machine.id === existing.id ? { ...machine, poids } : machine)
+      : [...current, { id: uid(), nom: row.nom, poids, reglages: "" }];
+    setMachinesByProfile({ ...profilesMachines, [profileId]: next });
+  };
+
+  return (
+    <div>
+      <div className="mb-5">
+        <Eyebrow color={C.muscu}>Musculation</Eyebrow>
+        <h2 className="font-display text-2xl" style={{ color: C.ink }}>Poids des machines</h2>
+        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Compare rapidement la charge habituelle de chaque machine pour les deux personnes.</p>
+      </div>
+      {machineRows.length === 0 ? (
+        <EmptyState icon={<Dumbbell size={28} />} color={C.muscu} text="Ajoutez d'abord vos machines dans Muscu, puis renseignez leurs poids ici." />
+      ) : (
+        <Card style={{ overflow: "hidden" }}>
+          <div className="grid machine-table-row gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", background: C.lineSoft, color: C.inkFaint }}>
+            <span className="font-mono text-xs uppercase tracking-widest">Machine</span>
+            <span className="font-mono text-xs text-center">{profiles.p1.name}</span>
+            <span className="font-mono text-xs text-center">{profiles.p2.name}</span>
+          </div>
+          {machineRows.map((row, index) => (
+            <div key={row.key} className="grid machine-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
+              <span className="font-body text-sm" style={{ color: C.ink }}>{row.nom}</span>
+              {["p1", "p2"].map((profileId) => {
+                const machine = getMachine(profileId, row.key);
+                return <input key={profileId} aria-label={`${row.nom} ${profiles[profileId].name}`} type="text" value={machine?.poids || ""}
+                  onChange={(event) => setWeight(profileId, row, event.target.value)} placeholder="ex. 35 kg"
+                  className="font-mono text-sm text-center rounded-sm outline-none"
+                  style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.muscu }} />;
+              })}
+            </div>
+          ))}
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Onglet: Repas / Macros                                               */
 /* ------------------------------------------------------------------ */
 
@@ -1205,15 +1265,16 @@ function AccueilTab({ data, profiles, setTab }) {
     { id: "quantites", label: "Mes quantités", description: "Repères par produit", icon: Scale, color: C.corps },
     { id: "corps", label: "Suivi du corps", description: `${bodyCount} mesure${bodyCount > 1 ? "s" : ""}`, icon: Scale, color: C.corps },
     { id: "muscu", label: "Musculation", description: `${workoutCount} séance${workoutCount > 1 ? "s" : ""}`, icon: Dumbbell, color: C.muscu },
+    { id: "machines", label: "Poids machines", description: "Comparer les charges", icon: Dumbbell, color: C.muscu },
     { id: "planning", label: "Planning", description: "Organiser la semaine", icon: CalendarDays, color: C.planning },
   ];
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="home-intro mb-6" style={{ padding: "24px 28px", background: `linear-gradient(110deg, ${C.nutritionSoft} 0%, ${C.paper} 72%)`, border: `1px solid ${C.line}`, borderLeft: `5px solid ${C.nutrition}`, borderRadius: 18 }}>
         <Eyebrow color={C.nutrition}>Bonjour</Eyebrow>
         <h2 className="font-display text-3xl" style={{ color: C.ink }}>Ton carnet en un coup d'oeil</h2>
-        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Bienvenue {profiles.p1.name}. Que veux-tu suivre aujourd'hui ?</p>
+        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Bienvenue {profiles.p1.name}. On avance tranquillement, une habitude à la fois.</p>
       </div>
       <div className="grid grid-cols-4 stats-grid gap-3 mb-6">
         {[
@@ -1229,7 +1290,7 @@ function AccueilTab({ data, profiles, setTab }) {
         ))}
       </div>
       <div className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: C.inkFaint }}>Accès rapide</div>
-      <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 home-shortcuts gap-3">
         {shortcuts.map((shortcut) => {
           const ShortcutIcon = shortcut.icon;
           return (
@@ -1254,6 +1315,7 @@ const TABS = [
   { id: "quantites", label: "Quantités", icon: Scale, color: C.courses },
   { id: "corps", label: "Corps", icon: Scale, color: C.corps },
   { id: "muscu", label: "Muscu", icon: Dumbbell, color: C.muscu },
+  { id: "machines", label: "Poids machines", icon: Dumbbell, color: C.muscu },
   { id: "planning", label: "Planning", icon: CalendarDays, color: C.planning },
 ];
 
@@ -1295,13 +1357,14 @@ function App() {
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
     quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} profiles={data.profiles} />,
+    machines: <MachinesPoidsTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} profiles={data.profiles} />,
     corps: <CorpsTab entries={data.body[profileId]} setEntries={(v) => update({ body: { ...data.body, [profileId]: v } })} />,
     muscu: <MuscuTab sessions={data.workouts[profileId]} setSessions={(v) => update({ workouts: { ...data.workouts, [profileId]: v } })}
       machines={data.machines[profileId]} setMachines={(v) => update({ machines: { ...data.machines, [profileId]: v } })} />,
     planning: <PlanningTab items={data.planning[profileId]} setItems={(v) => update({ planning: { ...data.planning, [profileId]: v } })} recipes={data.recipes} />,
   }[tab];
 
-  const needsProfile = ["corps", "muscu", "planning", "quantites"].includes(tab);
+  const needsProfile = ["corps", "muscu", "planning", "quantites", "machines"].includes(tab);
 
   return (
     <div className="font-body" style={{ minHeight: "100vh", background: `radial-gradient(circle at 8% 0%, rgba(255,253,248,0.95) 0, rgba(255,253,248,0) 30%), linear-gradient(135deg, ${C.bg} 0%, #EEE5D8 100%)` }}>
