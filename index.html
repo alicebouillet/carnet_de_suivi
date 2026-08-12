@@ -1298,16 +1298,17 @@ function PlanningTab({ items, setItems, recipes }) {
 
 function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
   const recipesCount = data.recipes.length;
-  const shoppingCount = data.grocery.filter((item) => !item.checked).length;
-  const bodyCount = (data.body.p1 || []).length + (data.body.p2 || []).length;
-  const workoutCount = (data.workouts.p1 || []).length + (data.workouts.p2 || []).length;
+  const bodyCount = (data.body[profileId] || []).length;
+  const workoutCount = (data.workouts[profileId] || []).length;
+  const machineCount = (data.machines[profileId] || []).length;
+  const quantityCount = Object.values(data.quantities || {}).filter((quantity) => quantity[profileId]).length;
   const shortcuts = [
     { id: "recettes", label: "Mes recettes", description: `${recipesCount} recette${recipesCount > 1 ? "s" : ""}`, icon: BookOpen, color: C.nutrition },
-    { id: "courses", label: "Liste de courses", description: `${shoppingCount} article${shoppingCount > 1 ? "s" : ""} à prendre`, icon: ShoppingCart, color: C.courses },
-    { id: "quantites", label: "Mes quantités", description: "Repères par produit", icon: Scale, color: C.corps },
+    { id: "courses", label: "Liste de courses", description: "Liste commune", icon: ShoppingCart, color: C.courses },
+    { id: "quantites", label: "Mes quantités", description: `${quantityCount} repère${quantityCount > 1 ? "s" : ""} renseigné${quantityCount > 1 ? "s" : ""}`, icon: Scale, color: C.corps },
     { id: "corps", label: "Suivi du corps", description: `${bodyCount} mesure${bodyCount > 1 ? "s" : ""}`, icon: Scale, color: C.corps },
     { id: "muscu", label: "Musculation", description: `${workoutCount} séance${workoutCount > 1 ? "s" : ""}`, icon: Dumbbell, color: C.muscu },
-    { id: "machines", label: "Répertoire machines", description: "Classer et comparer", icon: Dumbbell, color: C.muscu },
+    { id: "machines", label: "Répertoire machines", description: `${machineCount} machine${machineCount > 1 ? "s" : ""} pour ce profil`, icon: Dumbbell, color: C.muscu },
     { id: "planning", label: "Planning", description: "Organiser la semaine", icon: CalendarDays, color: C.planning },
   ];
 
@@ -1329,7 +1330,7 @@ function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
       <div className="grid grid-cols-4 stats-grid gap-3 mb-6">
         {[
           ["Recettes", recipesCount, C.nutrition],
-          ["Courses", shoppingCount, C.courses],
+          ["Repères", quantityCount, C.courses],
           ["Mesures", bodyCount, C.corps],
           ["Séances", workoutCount, C.muscu],
         ].map(([label, value, color]) => (
