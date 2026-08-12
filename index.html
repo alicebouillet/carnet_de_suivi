@@ -125,11 +125,14 @@
     [style*="60px 1fr 1fr 32px"] { grid-template-columns: 1fr 1fr !important; }
     [style*="110px repeat(7"] { grid-template-columns: 70px repeat(7, minmax(92px, 1fr)) !important; min-width: 714px !important; }
     .content-area .text-3xl { font-size: 28px; }
+    .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 480px) {
     .quantity-grid { grid-template-columns: 1fr 1fr 1fr !important; }
     .quantity-grid > :first-child { grid-column: 1 / -1; }
     .quantity-grid > :nth-child(2), .quantity-grid > :nth-child(3), .quantity-grid > :nth-child(4) { min-width: 0; }
+    .quantity-table-row { grid-template-columns: 1fr 1fr 1fr !important; }
+    .quantity-table-row > :first-child { grid-column: 1 / -1; }
     .content-area .text-2xl { font-size: 22px; }
     .content-area .text-3xl { font-size: 26px; }
   }
@@ -204,7 +207,7 @@ const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const emptyTargets = { kcal: 2000, glucides: 220, lipides: 70, proteines: 100 };
 const emptyStore = {
   profiles: { p1: { name: "Profil 1" }, p2: { name: "Profil 2" } },
-  recipes: [], grocery: [],
+  recipes: [], grocery: [], quantities: {},
   targets: { p1: { ...emptyTargets }, p2: { ...emptyTargets } },
   meals: { p1: [], p2: [] }, body: { p1: [], p2: [] },
   workouts: { p1: [], p2: [] }, machines: { p1: [], p2: [] }, planning: { p1: [], p2: [] },
@@ -291,6 +294,7 @@ function useSyncedStore() {
 const Icon = ({ children, size = 16, ...props }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>{children}</svg>
 );
+const Home = (p) => <Icon {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /><path d="M9 21v-6h6v6" /></Icon>;
 const Plus = (p) => <Icon {...p}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></Icon>;
 const X = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></Icon>;
 const Check = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12" /></Icon>;
@@ -663,13 +667,20 @@ function CoursesTab({ grocery, setGrocery }) {
 /* Onglet: Quantités par profil                                         */
 /* ------------------------------------------------------------------ */
 
-function QuantitesTab({ grocery, setGrocery, profiles }) {
-  const ingredients = grocery.filter((item) => item.nom && item.nom.trim());
-  const getQuantity = (item, profileId) => item.quantities?.[profileId] ?? (profileId === "p1" ? item.qte : "");
-  const setQuantity = (item, profileId, value) => {
-    setGrocery(grocery.map((current) => current.id === item.id
-      ? { ...current, quantities: { ...(current.quantities || {}), [profileId]: value } }
-      : current));
+const QUANTITY_CATEGORIES = [
+  { name: "Poissons", color: C.corps, products: ["Poisson blanc", "Saumon", "Thon", "Crevettes"] },
+  { name: "Viandes", color: C.muscu, products: ["Poulet", "Dinde", "Boeuf", "Oeufs"] },
+  { name: "Féculents", color: C.courses, products: ["Riz", "Pâtes", "Pomme de terre", "Semoule", "Pain"] },
+  { name: "Légumes", color: C.nutrition, products: ["Haricots verts", "Courgette", "Carotte", "Brocoli", "Salade"] },
+  { name: "Fruits", color: C.planning, products: ["Pomme", "Banane", "Fruits rouges", "Agrumes"] },
+  { name: "Autres", color: C.inkSoft, products: ["Lait", "Yaourt", "Fromage blanc", "Lentilles"] },
+];
+
+function QuantitesTab({ quantities, setQuantities, profiles }) {
+  const values = quantities || {};
+  const getQuantity = (key, profileId) => values[key]?.[profileId] || "";
+  const setQuantity = (key, profileId, value) => {
+    setQuantities({ ...values, [key]: { ...(values[key] || {}), [profileId]: value } });
   };
 
   return (
@@ -677,35 +688,37 @@ function QuantitesTab({ grocery, setGrocery, profiles }) {
       <div className="mb-5">
         <Eyebrow color={C.courses}>Repères personnels</Eyebrow>
         <h2 className="font-display text-2xl" style={{ color: C.ink }}>Quantités par ingrédient</h2>
-        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Une même recette, deux besoins différents. Les quantités sont liées à ta liste de courses.</p>
+        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Construis tes repères alimentaires, produit par produit, pour chaque personne.</p>
       </div>
-      {ingredients.length === 0 ? (
-        <EmptyState icon={<ShoppingCart size={28} />} color={C.courses} text="Ajoutez d’abord vos ingrédients dans l’onglet Courses." />
-      ) : (
-        <Card style={{ overflow: "hidden" }}>
-          <div className="grid quantity-grid gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", background: C.lineSoft, color: C.inkFaint }}>
-            <span className="font-mono text-xs uppercase tracking-widest">Ingrédient</span>
-            <span className="font-mono text-xs text-center">{profiles.p1.name}</span>
-            <span className="font-mono text-xs text-center">{profiles.p2.name}</span>
-            <span className="font-mono text-xs text-center">Unité</span>
-          </div>
-          {ingredients.map((item, index) => (
-            <div key={item.id} className="grid quantity-grid gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
-              <span className="font-body text-sm" style={{ color: C.ink }}>{item.nom}</span>
-              {[
-                ["p1", profiles.p1.name, C.nutrition],
-                ["p2", profiles.p2.name, C.corps],
-              ].map(([profileId, profileName, color]) => (
-                <input key={profileId} aria-label={`${item.nom} ${profileName}`} value={getQuantity(item, profileId)}
-                  onChange={(event) => setQuantity(item, profileId, event.target.value)} placeholder="—"
-                  className="font-mono text-sm text-center rounded-sm outline-none"
-                  style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color }} />
-              ))}
-              <span className="font-mono text-xs text-center" style={{ color: C.inkFaint }}>{item.unite || "g"}</span>
-            </div>
-          ))}
-        </Card>
-      )}
+      <Card style={{ overflow: "hidden" }}>
+        <div className="grid quantity-table-row gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", background: C.lineSoft, color: C.inkFaint }}>
+          <span className="font-mono text-xs uppercase tracking-widest">Produit</span>
+          <span className="font-mono text-xs text-center">{profiles.p1.name}</span>
+          <span className="font-mono text-xs text-center">{profiles.p2.name}</span>
+        </div>
+        {QUANTITY_CATEGORIES.map((category) => (
+          <React.Fragment key={category.name}>
+            <div className="font-mono text-xs uppercase tracking-widest px-4 py-2" style={{ color: category.color, background: `${category.color}12`, borderTop: `1px solid ${C.line}` }}>{category.name}</div>
+            {category.products.map((product, index) => {
+              const key = `${category.name}:${product}`;
+              return (
+                <div key={key} className="grid quantity-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
+                  <span className="font-body text-sm" style={{ color: C.ink }}>{product}</span>
+                  {[
+                    ["p1", profiles.p1.name, C.nutrition],
+                    ["p2", profiles.p2.name, C.corps],
+                  ].map(([profileId, profileName, color]) => (
+                    <input key={profileId} aria-label={`${product} ${profileName}`} value={getQuantity(key, profileId)}
+                      onChange={(event) => setQuantity(key, profileId, event.target.value)} placeholder="ex. 75 g"
+                      className="font-mono text-sm text-center rounded-sm outline-none"
+                      style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color }} />
+                  ))}
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
+      </Card>
     </div>
   );
 }
@@ -1181,18 +1194,71 @@ function PlanningTab({ items, setItems, recipes }) {
 /* App                                                                    */
 /* ------------------------------------------------------------------ */
 
+function AccueilTab({ data, profiles, setTab }) {
+  const recipesCount = data.recipes.length;
+  const shoppingCount = data.grocery.filter((item) => !item.checked).length;
+  const bodyCount = (data.body.p1 || []).length + (data.body.p2 || []).length;
+  const workoutCount = (data.workouts.p1 || []).length + (data.workouts.p2 || []).length;
+  const shortcuts = [
+    { id: "recettes", label: "Mes recettes", description: `${recipesCount} recette${recipesCount > 1 ? "s" : ""}`, icon: BookOpen, color: C.nutrition },
+    { id: "courses", label: "Liste de courses", description: `${shoppingCount} article${shoppingCount > 1 ? "s" : ""} à prendre`, icon: ShoppingCart, color: C.courses },
+    { id: "quantites", label: "Mes quantités", description: "Repères par produit", icon: Scale, color: C.corps },
+    { id: "corps", label: "Suivi du corps", description: `${bodyCount} mesure${bodyCount > 1 ? "s" : ""}`, icon: Scale, color: C.corps },
+    { id: "muscu", label: "Musculation", description: `${workoutCount} séance${workoutCount > 1 ? "s" : ""}`, icon: Dumbbell, color: C.muscu },
+    { id: "planning", label: "Planning", description: "Organiser la semaine", icon: CalendarDays, color: C.planning },
+  ];
+
+  return (
+    <div>
+      <div className="mb-6">
+        <Eyebrow color={C.nutrition}>Bonjour</Eyebrow>
+        <h2 className="font-display text-3xl" style={{ color: C.ink }}>Ton carnet en un coup d'oeil</h2>
+        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Bienvenue {profiles.p1.name}. Que veux-tu suivre aujourd'hui ?</p>
+      </div>
+      <div className="grid grid-cols-4 stats-grid gap-3 mb-6">
+        {[
+          ["Recettes", recipesCount, C.nutrition],
+          ["Courses", shoppingCount, C.courses],
+          ["Mesures", bodyCount, C.corps],
+          ["Séances", workoutCount, C.muscu],
+        ].map(([label, value, color]) => (
+          <Card key={label} style={{ padding: 16, borderTop: `3px solid ${color}` }}>
+            <div className="font-mono text-xs uppercase tracking-widest" style={{ color: C.inkFaint }}>{label}</div>
+            <div className="font-display text-2xl mt-2" style={{ color }}>{value}</div>
+          </Card>
+        ))}
+      </div>
+      <div className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: C.inkFaint }}>Accès rapide</div>
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+        {shortcuts.map((shortcut) => {
+          const ShortcutIcon = shortcut.icon;
+          return (
+            <button key={shortcut.id} onClick={() => setTab(shortcut.id)} className="font-body text-left rounded-lg p-4"
+              style={{ background: C.paper, border: `1px solid ${C.line}`, color: C.ink, cursor: "pointer", boxShadow: "0 6px 18px rgba(66,54,40,0.05)" }}>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center justify-center rounded-full" style={{ width: 34, height: 34, color: shortcut.color, background: `${shortcut.color}18` }}><ShortcutIcon size={17} /></span>
+                <span className="min-w-0"><strong className="font-body text-sm block">{shortcut.label}</strong><span className="font-mono text-xs" style={{ color: C.inkFaint }}>{shortcut.description}</span></span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const TABS = [
+  { id: "accueil", label: "Accueil", icon: Home, color: C.ink },
   { id: "recettes", label: "Recettes", icon: BookOpen, color: C.nutrition },
   { id: "courses", label: "Courses", icon: ShoppingCart, color: C.courses },
   { id: "quantites", label: "Quantités", icon: Scale, color: C.courses },
-  { id: "repas", label: "Repas", icon: Flame, color: C.nutrition },
   { id: "corps", label: "Corps", icon: Scale, color: C.corps },
   { id: "muscu", label: "Muscu", icon: Dumbbell, color: C.muscu },
   { id: "planning", label: "Planning", icon: CalendarDays, color: C.planning },
 ];
 
 function App() {
-  const [tab, setTab] = useState("recettes");
+  const [tab, setTab] = useState("accueil");
   const [profileId, setProfileId] = useState("p1");
   const [editingProfile, setEditingProfile] = useState(null);
   const { data, update, ready, synced } = useSyncedStore();
@@ -1225,18 +1291,17 @@ function App() {
   }
 
   const TabComponent = {
+    accueil: <AccueilTab data={data} profiles={data.profiles} setTab={setTab} />,
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
-    quantites: <QuantitesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} profiles={data.profiles} />,
-    repas: <RepasTab recipes={data.recipes} meals={data.meals[profileId]} setMeals={(v) => update({ meals: { ...data.meals, [profileId]: v } })}
-      targets={data.targets[profileId]} setTargets={(v) => update({ targets: { ...data.targets, [profileId]: v } })} />,
+    quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} profiles={data.profiles} />,
     corps: <CorpsTab entries={data.body[profileId]} setEntries={(v) => update({ body: { ...data.body, [profileId]: v } })} />,
     muscu: <MuscuTab sessions={data.workouts[profileId]} setSessions={(v) => update({ workouts: { ...data.workouts, [profileId]: v } })}
       machines={data.machines[profileId]} setMachines={(v) => update({ machines: { ...data.machines, [profileId]: v } })} />,
     planning: <PlanningTab items={data.planning[profileId]} setItems={(v) => update({ planning: { ...data.planning, [profileId]: v } })} recipes={data.recipes} />,
   }[tab];
 
-  const needsProfile = ["repas", "corps", "muscu", "planning", "quantites"].includes(tab);
+  const needsProfile = ["corps", "muscu", "planning", "quantites"].includes(tab);
 
   return (
     <div className="font-body" style={{ minHeight: "100vh", background: `radial-gradient(circle at 8% 0%, rgba(255,253,248,0.95) 0, rgba(255,253,248,0) 30%), linear-gradient(135deg, ${C.bg} 0%, #EEE5D8 100%)` }}>
