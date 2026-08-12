@@ -213,10 +213,10 @@ const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const emptyTargets = { kcal: 2000, glucides: 220, lipides: 70, proteines: 100 };
 const emptyStore = {
   profiles: { p1: { name: "Profil 1" }, p2: { name: "Profil 2" } },
-  recipes: [], grocery: [], quantities: {}, customQuantityProducts: [], hiddenQuantityProducts: [],
+  recipes: [], grocery: [], quantities: {}, quantityMeta: {}, customQuantityCategories: [], customQuantityProducts: [], hiddenQuantityProducts: [],
   targets: { p1: { ...emptyTargets }, p2: { ...emptyTargets } },
   meals: { p1: [], p2: [] }, body: { p1: [], p2: [] },
-  workouts: { p1: [], p2: [] }, machines: { p1: [], p2: [] }, planning: { p1: [], p2: [] },
+  workouts: { p1: [], p2: [] }, machines: { p1: [], p2: [] }, customMachineCategories: [], planning: { p1: [], p2: [] },
 };
 
 /* ------------------------------------------------------------------ */
@@ -684,14 +684,18 @@ const QUANTITY_CATEGORIES = [
   { name: "Autres", color: C.inkSoft, products: ["Lait", "Yaourt", "Fromage blanc", "Lentilles"] },
 ];
 
-function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProducts, hiddenProducts, setHiddenProducts, profiles }) {
+function QuantitesTab({ quantities, setQuantities, quantityMeta, setQuantityMeta, customCategories, setCustomCategories, customProducts, setCustomProducts, hiddenProducts, setHiddenProducts, profiles }) {
   const [newProduct, setNewProduct] = useState("");
   const [newCategory, setNewCategory] = useState(QUANTITY_CATEGORIES[0].name);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [editingProductId, setEditingProductId] = useState(null);
   const values = quantities || {};
+  const meta = quantityMeta || {};
   const custom = customProducts || [];
   const hidden = hiddenProducts || [];
-  const categories = QUANTITY_CATEGORIES.map((category) => ({
+  const extraCategories = (customCategories || []).map((name, index) => ({ name, color: [C.nutrition, C.courses, C.corps, C.muscu, C.planning][index % 5], products: [] }));
+  const allCategories = [...QUANTITY_CATEGORIES, ...extraCategories];
+  const categories = allCategories.map((category) => ({
     ...category,
     products: [
       ...category.products.filter((product) => !hidden.includes(`${category.name}:${product}`)),
@@ -702,10 +706,20 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
   const setQuantity = (key, profileId, value) => {
     setQuantities({ ...values, [key]: { ...(values[key] || {}), [profileId]: value } });
   };
+  const setPreparation = (key, field, value) => {
+    setQuantityMeta({ ...meta, [key]: { ...(meta[key] || { etat: "sec", ratio: "" }), [field]: value } });
+  };
+  const addCategory = () => {
+    const name = newCategoryName.trim();
+    if (!name || allCategories.some((category) => category.name.toLowerCase() === name.toLowerCase())) return;
+    setCustomCategories([...(customCategories || []), name]);
+    setNewCategory(name);
+    setNewCategoryName("");
+  };
   const saveProduct = () => {
     const nom = newProduct.trim();
     const editingDefault = editingProductId?.startsWith("default:") ? editingProductId.slice("default:".length).split(":") : null;
-    const targetIsDefault = QUANTITY_CATEGORIES.some((category) => category.name === newCategory && category.products.some((product) => product.toLowerCase() === nom.toLowerCase()));
+    const targetIsDefault = allCategories.some((category) => category.name === newCategory && category.products.some((product) => product.toLowerCase() === nom.toLowerCase()));
     const sameDefault = editingDefault && editingDefault[0] === newCategory && editingDefault.slice(1).join(":").toLowerCase() === nom.toLowerCase();
     const duplicateCustom = custom.some((product) => product.id !== editingProductId && product.category === newCategory && product.nom.toLowerCase() === nom.toLowerCase());
     const exists = duplicateCustom || (targetIsDefault && !sameDefault);
@@ -768,10 +782,14 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
           <TextInput value={newProduct} onChange={setNewProduct} placeholder="Ex. Quinoa, avocat..." />
           <select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} className="font-body text-sm px-4 py-3 rounded-lg outline-none"
             style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>
-            {QUANTITY_CATEGORIES.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
+            {allCategories.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
           </select>
           <PrimaryBtn color={C.courses} onClick={saveProduct}>{editingProductId ? <><Check size={15} /> Enregistrer</> : <><Plus size={15} /> Ajouter</>}</PrimaryBtn>
           {editingProductId && <PrimaryBtn color={C.inkFaint} onClick={() => { setNewProduct(""); setEditingProductId(null); }}><X size={15} /> Annuler</PrimaryBtn>}
+        </div>
+        <div className="flex gap-2 mt-3 flex-wrap">
+          <TextInput value={newCategoryName} onChange={setNewCategoryName} placeholder="Nouvelle catégorie" className="flex-1" />
+          <PrimaryBtn color={C.inkSoft} onClick={addCategory}><Plus size={15} /> Catégorie</PrimaryBtn>
         </div>
       </Card>
       <Card style={{ overflow: "hidden" }}>
@@ -788,7 +806,7 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
               return (
                 <div key={key} className="grid quantity-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-body text-sm" style={{ color: C.ink }}>{product}</span>
+                    <div className="min-w-0"><span className="font-body text-sm block" style={{ color: C.ink }}>{product}</span><div className="flex items-center gap-1 mt-1"><select value={meta[key]?.etat || "sec"} onChange={(event) => setPreparation(key, "etat", event.target.value)} className="font-mono text-xs rounded-sm" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.inkSoft, padding: "3px 4px" }}><option value="sec">sec</option><option value="cuit">cuit</option></select><span className="font-mono text-xs" style={{ color: C.inkFaint }}>ratio sec/cuit</span><input value={meta[key]?.ratio || ""} onChange={(event) => setPreparation(key, "ratio", event.target.value)} placeholder="1:2,5" className="font-mono text-xs rounded-sm outline-none" style={{ width: 54, padding: "3px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.inkSoft }} /></div></div>
                     <span className="flex-shrink-0">
                       <IconBtn onClick={() => editProduct(custom.find((item) => item.category === category.name && item.nom === product) || { id: `default:${category.name}:${product}`, nom: product, category: category.name })} title="Modifier cet aliment"><span className="font-mono text-xs">éd.</span></IconBtn>
                       <IconBtn danger onClick={() => removeProduct(category.name, product)} title="Supprimer cet aliment"><Trash2 size={13} /></IconBtn>
@@ -819,9 +837,11 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
 
 const MACHINE_CATEGORIES = ["Dos", "Jambes", "Bras", "Autres"];
 
-function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, profiles }) {
+function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, customCategories, setCustomCategories, profiles }) {
   const profilesMachines = machinesByProfile || { p1: [], p2: [] };
   const [machineForm, setMachineForm] = useState(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const machineCategories = [...MACHINE_CATEGORIES, ...(customCategories || [])];
   const machineRows = [...new Map(
     [...(profilesMachines.p1 || []), ...(profilesMachines.p2 || [])]
       .filter((machine) => machine.nom && machine.nom.trim())
@@ -862,7 +882,13 @@ function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, profil
     });
     setMachinesByProfile(next);
   };
-  const groupedRows = MACHINE_CATEGORIES.map((category) => ({ category, rows: machineRows.filter((row) => row.category === category) })).filter((group) => group.rows.length > 0);
+  const addCategory = () => {
+    const name = newCategoryName.trim();
+    if (!name || machineCategories.some((category) => category.toLowerCase() === name.toLowerCase())) return;
+    setCustomCategories([...(customCategories || []), name]);
+    setNewCategoryName("");
+  };
+  const groupedRows = machineCategories.map((category) => ({ category, rows: machineRows.filter((row) => row.category === category) })).filter((group) => group.rows.length > 0);
 
   return (
     <div>
@@ -878,7 +904,7 @@ function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, profil
         <Card style={{ padding: 16, marginBottom: 16 }}>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Nom de la machine</label><TextInput value={machineForm.nom} onChange={(value) => setMachineForm({ ...machineForm, nom: value })} placeholder="Ex. Presse à cuisses" /></div>
-            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Catégorie</label><select value={machineForm.category} onChange={(event) => setMachineForm({ ...machineForm, category: event.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>{MACHINE_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
+            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Catégorie</label><select value={machineForm.category} onChange={(event) => setMachineForm({ ...machineForm, category: event.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>{machineCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>{profiles.p1.name} (kg)</label><TextInput type="number" value={machineForm.poidsP1} onChange={(value) => setMachineForm({ ...machineForm, poidsP1: value })} placeholder="Ex. 35" /></div>
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>{profiles.p2.name} (kg)</label><TextInput type="number" value={machineForm.poidsP2} onChange={(value) => setMachineForm({ ...machineForm, poidsP2: value })} placeholder="Ex. 25" /></div>
           </div>
@@ -887,6 +913,10 @@ function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, profil
           <div className="flex gap-2"><PrimaryBtn color={C.muscu} onClick={saveMachine}><Check size={14} /> Enregistrer</PrimaryBtn><PrimaryBtn color={C.inkFaint} onClick={() => setMachineForm(null)}><X size={14} /> Annuler</PrimaryBtn></div>
         </Card>
       )}
+      <Card style={{ padding: 16, marginBottom: 16 }}>
+        <div className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: C.inkFaint }}>Ajouter une catégorie de machine</div>
+        <div className="flex gap-2"><TextInput value={newCategoryName} onChange={setNewCategoryName} placeholder="Ex. Cardio, Épaules..." className="flex-1" /><PrimaryBtn color={C.inkSoft} onClick={addCategory}><Plus size={15} /> Catégorie</PrimaryBtn></div>
+      </Card>
       {machineRows.length === 0 ? <EmptyState icon={<Dumbbell size={28} />} color={C.muscu} text="Aucune machine enregistrée. Ajoutez votre première machine ci-dessus." /> : (
         <Card style={{ overflow: "hidden" }}>
           <div className="grid machine-table-row gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", background: C.lineSoft, color: C.inkFaint }}>
@@ -1086,7 +1116,7 @@ function CorpsTab({ entries, setEntries }) {
 /* Onglet: Musculation                                                   */
 /* ------------------------------------------------------------------ */
 
-function MuscuTab({ sessions, setSessions, machines, setMachines }) {
+function MuscuTab({ sessions, setSessions, machines, setMachines, planningItems, setPlanningItems }) {
   const [form, setForm] = useState(null);
   const [trackedEx, setTrackedEx] = useState("");
 
@@ -1107,9 +1137,18 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
     };
     const exists = sessions.some((savedSession) => savedSession.id === session.id);
     setSessions(exists ? sessions.map((savedSession) => savedSession.id === session.id ? session : savedSession) : [...sessions, session]);
+    const planningEntry = { id: `muscu-${session.id}`, sessionId: session.id, date: session.date, type: "muscu", label: session.nom, done: false };
+    const currentPlanning = planningItems || [];
+    const planningExists = currentPlanning.some((item) => item.sessionId === session.id || item.id === planningEntry.id);
+    setPlanningItems(planningExists
+      ? currentPlanning.map((item) => item.sessionId === session.id || item.id === planningEntry.id ? { ...item, ...planningEntry } : item)
+      : [...currentPlanning, planningEntry]);
     setForm(null);
   };
-  const remove = (id) => setSessions(sessions.filter((s) => s.id !== id));
+  const remove = (id) => {
+    setSessions(sessions.filter((s) => s.id !== id));
+    setPlanningItems((planningItems || []).filter((item) => item.sessionId !== id && item.id !== `muscu-${id}`));
+  };
   const edit = (session) => setForm({ ...session, exercices: session.exercices.map((exercise) => ({ ...exercise, series: exercise.series.length ? exercise.series : [{ id: uid(), reps: "", poids: "" }] })) });
   const updateEx = (exId, patch) => setForm({ ...form, exercices: form.exercices.map((ex) => (ex.id === exId ? { ...ex, ...patch } : ex)) });
   const addEx = () => setForm({ ...form, exercices: [...form.exercices, { id: uid(), nom: "", series: [{ id: uid(), reps: "", poids: "" }] }] });
@@ -1455,11 +1494,12 @@ function App() {
     accueil: <AccueilTab data={data} profiles={data.profiles} profileId={profileId} setProfileId={setProfileId} setTab={setTab} />,
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
-    quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} hiddenProducts={data.hiddenQuantityProducts} setHiddenProducts={(v) => update({ hiddenQuantityProducts: v })} profiles={data.profiles} />,
-    machines: <RepertoireMachinesTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} profiles={data.profiles} />,
+    quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} quantityMeta={data.quantityMeta} setQuantityMeta={(v) => update({ quantityMeta: v })} customCategories={data.customQuantityCategories} setCustomCategories={(v) => update({ customQuantityCategories: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} hiddenProducts={data.hiddenQuantityProducts} setHiddenProducts={(v) => update({ hiddenQuantityProducts: v })} profiles={data.profiles} />,
+    machines: <RepertoireMachinesTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} customCategories={data.customMachineCategories} setCustomCategories={(v) => update({ customMachineCategories: v })} profiles={data.profiles} />,
     corps: <CorpsTab entries={data.body[profileId]} setEntries={(v) => update({ body: { ...data.body, [profileId]: v } })} />,
     muscu: <MuscuTab sessions={data.workouts[profileId]} setSessions={(v) => update({ workouts: { ...data.workouts, [profileId]: v } })}
-      machines={data.machines[profileId]} setMachines={(v) => update({ machines: { ...data.machines, [profileId]: v } })} />,
+      machines={data.machines[profileId]} setMachines={(v) => update({ machines: { ...data.machines, [profileId]: v } })}
+      planningItems={data.planning[profileId]} setPlanningItems={(v) => update({ planning: { ...data.planning, [profileId]: v } })} />,
     planning: <PlanningTab items={data.planning[profileId]} setItems={(v) => update({ planning: { ...data.planning, [profileId]: v } })} recipes={data.recipes} />,
   }[tab];
 
