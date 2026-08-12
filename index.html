@@ -685,6 +685,7 @@ const QUANTITY_CATEGORIES = [
 function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProducts, profiles }) {
   const [newProduct, setNewProduct] = useState("");
   const [newCategory, setNewCategory] = useState(QUANTITY_CATEGORIES[0].name);
+  const [editingProductId, setEditingProductId] = useState(null);
   const values = quantities || {};
   const custom = customProducts || [];
   const categories = QUANTITY_CATEGORIES.map((category) => ({
@@ -695,12 +696,32 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
   const setQuantity = (key, profileId, value) => {
     setQuantities({ ...values, [key]: { ...(values[key] || {}), [profileId]: value } });
   };
-  const addProduct = () => {
+  const saveProduct = () => {
     const nom = newProduct.trim();
-    const exists = categories.some((category) => category.products.some((product) => product.toLowerCase() === nom.toLowerCase()));
+    const exists = categories.some((category) => category.products.some((product) => product.toLowerCase() === nom.toLowerCase())) && !custom.some((product) => product.id === editingProductId && product.nom.toLowerCase() === nom.toLowerCase());
     if (!nom || exists) return;
-    setCustomProducts([...custom, { id: uid(), nom, category: newCategory }]);
+    if (!editingProductId) {
+      setCustomProducts([...custom, { id: uid(), nom, category: newCategory }]);
+    } else {
+      const previous = custom.find((product) => product.id === editingProductId);
+      const previousKey = previous ? `${previous.category}:${previous.nom}` : "";
+      const nextKey = `${newCategory}:${nom}`;
+      const nextQuantities = { ...values };
+      if (previousKey !== nextKey && nextQuantities[previousKey]) {
+        nextQuantities[nextKey] = nextQuantities[previousKey];
+        delete nextQuantities[previousKey];
+        setQuantities(nextQuantities);
+      }
+      setCustomProducts(custom.map((product) => product.id === editingProductId ? { ...product, nom, category: newCategory } : product));
+    }
     setNewProduct("");
+    setNewCategory(QUANTITY_CATEGORIES[0].name);
+    setEditingProductId(null);
+  };
+  const editProduct = (product) => { setNewProduct(product.nom); setNewCategory(product.category); setEditingProductId(product.id); };
+  const removeProduct = (categoryName, productName) => {
+    if (!window.confirm(`Supprimer ${productName} de tes aliments personnalisés ?`)) return;
+    setCustomProducts(custom.filter((product) => !(product.category === categoryName && product.nom === productName)));
   };
 
   return (
@@ -711,14 +732,15 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
         <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Construis tes repères alimentaires, produit par produit, pour chaque personne.</p>
       </div>
       <Card style={{ padding: 16, marginBottom: 16 }}>
-        <div className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: C.inkFaint }}>Ajouter un aliment</div>
+        <div className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: C.inkFaint }}>{editingProductId ? "Modifier un aliment" : "Ajouter un aliment"}</div>
         <div className="grid quantity-add-form gap-2" style={{ gridTemplateColumns: "minmax(180px, 1fr) 180px auto" }}>
           <TextInput value={newProduct} onChange={setNewProduct} placeholder="Ex. Quinoa, avocat..." />
           <select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} className="font-body text-sm px-4 py-3 rounded-lg outline-none"
             style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>
             {QUANTITY_CATEGORIES.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
           </select>
-          <PrimaryBtn color={C.courses} onClick={addProduct}><Plus size={15} /> Ajouter</PrimaryBtn>
+          <PrimaryBtn color={C.courses} onClick={saveProduct}>{editingProductId ? <><Check size={15} /> Enregistrer</> : <><Plus size={15} /> Ajouter</>}</PrimaryBtn>
+          {editingProductId && <PrimaryBtn color={C.inkFaint} onClick={() => { setNewProduct(""); setEditingProductId(null); }}><X size={15} /> Annuler</PrimaryBtn>}
         </div>
       </Card>
       <Card style={{ overflow: "hidden" }}>
@@ -734,7 +756,10 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
               const key = `${category.name}:${product}`;
               return (
                 <div key={key} className="grid quantity-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
-                  <span className="font-body text-sm" style={{ color: C.ink }}>{product}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-body text-sm" style={{ color: C.ink }}>{product}</span>
+                    {custom.some((item) => item.category === category.name && item.nom === product) && <span className="flex-shrink-0"><IconBtn onClick={() => editProduct(custom.find((item) => item.category === category.name && item.nom === product))} title="Modifier cet aliment"><span className="font-mono text-xs">éd.</span></IconBtn><IconBtn danger onClick={() => removeProduct(category.name, product)} title="Supprimer cet aliment"><Trash2 size={13} /></IconBtn></span>}
+                  </div>
                   {[
                     ["p1", profiles.p1.name, C.nutrition],
                     ["p2", profiles.p2.name, C.corps],
@@ -778,15 +803,20 @@ function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, profil
       : [...current, { id: uid(), nom: row.nom, poids, reglages: "" }];
     setMachinesByProfile({ ...profilesMachines, [profileId]: next });
   };
-  const openMachineForm = (machine) => setMachineForm(machine ? { ...machine } : { id: uid(), nom: "", category: "Dos", reglages: "" });
+  const openMachineForm = (machine) => {
+    if (!machine) return setMachineForm({ id: uid(), nom: "", category: "Dos", poidsP1: "", poidsP2: "", reglages: "" });
+    const p1Machine = getMachine("p1", machine.nom.trim().toLowerCase());
+    const p2Machine = getMachine("p2", machine.nom.trim().toLowerCase());
+    setMachineForm({ ...machine, poidsP1: p1Machine?.poids || "", poidsP2: p2Machine?.poids || "" });
+  };
   const saveMachine = () => {
     if (!machineForm.nom.trim()) return;
-    const record = { ...machineForm, nom: machineForm.nom.trim(), category: machineForm.category || "Autres" };
+    const record = { id: machineForm.id, nom: machineForm.nom.trim(), category: machineForm.category || "Autres", reglages: machineForm.reglages || "" };
     const next = { ...profilesMachines };
-    ["p1", "p2"].forEach((profileId) => {
+    [["p1", machineForm.poidsP1], ["p2", machineForm.poidsP2]].forEach(([profileId, poids]) => {
       const list = next[profileId] || [];
       const index = list.findIndex((machine) => machine.id === record.id || machine.nom.trim().toLowerCase() === record.nom.toLowerCase());
-      next[profileId] = index === -1 ? [...list, { ...record, poids: "" }] : list.map((machine, itemIndex) => itemIndex === index ? { ...machine, ...record } : machine);
+      next[profileId] = index === -1 ? [...list, { ...record, poids: poids || "" }] : list.map((machine, itemIndex) => itemIndex === index ? { ...machine, ...record, poids: poids || "" } : machine);
     });
     setMachinesByProfile(next);
     setMachineForm(null);
@@ -815,6 +845,8 @@ function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, profil
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Nom de la machine</label><TextInput value={machineForm.nom} onChange={(value) => setMachineForm({ ...machineForm, nom: value })} placeholder="Ex. Presse à cuisses" /></div>
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Catégorie</label><select value={machineForm.category} onChange={(event) => setMachineForm({ ...machineForm, category: event.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>{MACHINE_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
+            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>{profiles.p1.name} (kg)</label><TextInput type="number" value={machineForm.poidsP1} onChange={(value) => setMachineForm({ ...machineForm, poidsP1: value })} placeholder="Ex. 35" /></div>
+            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>{profiles.p2.name} (kg)</label><TextInput type="number" value={machineForm.poidsP2} onChange={(value) => setMachineForm({ ...machineForm, poidsP2: value })} placeholder="Ex. 25" /></div>
           </div>
           <label className="font-mono text-xs" style={{ color: C.inkFaint }}>Réglages</label>
           <textarea value={machineForm.reglages || ""} onChange={(event) => setMachineForm({ ...machineForm, reglages: event.target.value })} rows={2} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-3 mt-1" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6" }} placeholder="Position du siège, amplitude..." />
@@ -1264,7 +1296,7 @@ function PlanningTab({ items, setItems, recipes }) {
 /* App                                                                    */
 /* ------------------------------------------------------------------ */
 
-function AccueilTab({ data, profiles, setTab }) {
+function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
   const recipesCount = data.recipes.length;
   const shoppingCount = data.grocery.filter((item) => !item.checked).length;
   const bodyCount = (data.body.p1 || []).length + (data.body.p2 || []).length;
@@ -1283,8 +1315,16 @@ function AccueilTab({ data, profiles, setTab }) {
     <div>
       <div className="home-intro mb-6" style={{ padding: "24px 28px", background: `linear-gradient(110deg, ${C.nutritionSoft} 0%, ${C.paper} 72%)`, border: `1px solid ${C.line}`, borderLeft: `5px solid ${C.nutrition}`, borderRadius: 18 }}>
         <Eyebrow color={C.nutrition}>Bonjour</Eyebrow>
-        <h2 className="font-display text-3xl" style={{ color: C.ink }}>Ton carnet en un coup d'oeil</h2>
-        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Bienvenue {profiles.p1.name}. On avance tranquillement, une habitude à la fois.</p>
+        <h2 className="font-display text-3xl" style={{ color: C.ink }}>Bonjour {profiles[profileId].name}</h2>
+        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>On avance tranquillement, une habitude à la fois.</p>
+        <div className="flex gap-2 mt-4 flex-wrap">
+          {["p1", "p2"].map((pid) => (
+            <button key={pid} onClick={() => setProfileId(pid)} className="font-body text-sm px-4 py-2 rounded-full"
+              style={{ background: profileId === pid ? C.nutrition : C.paper, color: profileId === pid ? "#fff" : C.inkSoft, border: `1px solid ${profileId === pid ? C.nutrition : C.line}`, cursor: "pointer", boxShadow: profileId === pid ? "0 4px 10px rgba(78,143,120,0.2)" : "none" }}>
+              {profiles[pid].name}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="grid grid-cols-4 stats-grid gap-3 mb-6">
         {[
@@ -1363,7 +1403,7 @@ function App() {
   }
 
   const TabComponent = {
-    accueil: <AccueilTab data={data} profiles={data.profiles} setTab={setTab} />,
+    accueil: <AccueilTab data={data} profiles={data.profiles} profileId={profileId} setProfileId={setProfileId} setTab={setTab} />,
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
     quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} profiles={data.profiles} />,
