@@ -119,6 +119,19 @@
     .sidebar-brand { display: none; }
     .sidebar-nav { flex-direction: row; overflow-x: auto; padding-bottom: 2px; }
     .sidebar-nav button { width: auto; flex: 0 0 auto; justify-content: center; white-space: nowrap; }
+    .max-w-4xl { width: 100%; padding: 24px 16px 72px !important; }
+    .content-area .flex.items-center.justify-between { flex-wrap: wrap; gap: 12px; }
+    [style*="1fr 90px"] { grid-template-columns: 1fr 1fr !important; }
+    [style*="60px 1fr 1fr 32px"] { grid-template-columns: 1fr 1fr !important; }
+    [style*="110px repeat(7"] { grid-template-columns: 70px repeat(7, minmax(92px, 1fr)) !important; min-width: 714px !important; }
+    .content-area .text-3xl { font-size: 28px; }
+  }
+  @media (max-width: 480px) {
+    .quantity-grid { grid-template-columns: 1fr 1fr 1fr !important; }
+    .quantity-grid > :first-child { grid-column: 1 / -1; }
+    .quantity-grid > :nth-child(2), .quantity-grid > :nth-child(3), .quantity-grid > :nth-child(4) { min-width: 0; }
+    .content-area .text-2xl { font-size: 22px; }
+    .content-area .text-3xl { font-size: 26px; }
   }
 </style>
 </head>
@@ -670,14 +683,14 @@ function QuantitesTab({ grocery, setGrocery, profiles }) {
         <EmptyState icon={<ShoppingCart size={28} />} color={C.courses} text="Ajoutez d’abord vos ingrédients dans l’onglet Courses." />
       ) : (
         <Card style={{ overflow: "hidden" }}>
-          <div className="grid gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", background: C.lineSoft, color: C.inkFaint }}>
+          <div className="grid quantity-grid gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", background: C.lineSoft, color: C.inkFaint }}>
             <span className="font-mono text-xs uppercase tracking-widest">Ingrédient</span>
             <span className="font-mono text-xs text-center">{profiles.p1.name}</span>
             <span className="font-mono text-xs text-center">{profiles.p2.name}</span>
             <span className="font-mono text-xs text-center">Unité</span>
           </div>
           {ingredients.map((item, index) => (
-            <div key={item.id} className="grid gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
+            <div key={item.id} className="grid quantity-grid gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(160px, 1fr) 110px 110px 70px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
               <span className="font-body text-sm" style={{ color: C.ink }}>{item.nom}</span>
               {[
                 ["p1", profiles.p1.name, C.nutrition],
