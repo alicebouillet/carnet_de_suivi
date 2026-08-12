@@ -698,9 +698,18 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
   };
   const saveProduct = () => {
     const nom = newProduct.trim();
-    const exists = categories.some((category) => category.products.some((product) => product.toLowerCase() === nom.toLowerCase())) && !custom.some((product) => product.id === editingProductId && product.nom.toLowerCase() === nom.toLowerCase());
+    const editingDefaultName = editingProductId?.startsWith("default:") ? editingProductId.split(":").slice(2).join(":") : "";
+    const exists = categories.some((category) => category.products.some((product) => product.toLowerCase() === nom.toLowerCase()))
+      && !custom.some((product) => product.id === editingProductId && product.nom.toLowerCase() === nom.toLowerCase())
+      && editingDefaultName.toLowerCase() !== nom.toLowerCase();
     if (!nom || exists) return;
-    if (!editingProductId) {
+    if (!editingProductId || editingProductId.startsWith("default:")) {
+      const previousDefault = editingProductId && editingProductId.startsWith("default:") ? editingProductId.slice("default:".length) : "";
+      const previousKey = previousDefault;
+      const nextKey = `${newCategory}:${nom}`;
+      if (previousKey !== nextKey && values[previousKey]) {
+        setQuantities({ ...values, [nextKey]: values[previousKey] });
+      }
       setCustomProducts([...custom, { id: uid(), nom, category: newCategory }]);
     } else {
       const previous = custom.find((product) => product.id === editingProductId);
@@ -718,7 +727,11 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
     setNewCategory(QUANTITY_CATEGORIES[0].name);
     setEditingProductId(null);
   };
-  const editProduct = (product) => { setNewProduct(product.nom); setNewCategory(product.category); setEditingProductId(product.id); };
+  const editProduct = (product) => {
+    setNewProduct(product.nom);
+    setNewCategory(product.category);
+    setEditingProductId(product.id);
+  };
   const removeProduct = (categoryName, productName) => {
     if (!window.confirm(`Supprimer ${productName} de tes aliments personnalisés ?`)) return;
     setCustomProducts(custom.filter((product) => !(product.category === categoryName && product.nom === productName)));
@@ -758,7 +771,10 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
                 <div key={key} className="grid quantity-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-body text-sm" style={{ color: C.ink }}>{product}</span>
-                    {custom.some((item) => item.category === category.name && item.nom === product) && <span className="flex-shrink-0"><IconBtn onClick={() => editProduct(custom.find((item) => item.category === category.name && item.nom === product))} title="Modifier cet aliment"><span className="font-mono text-xs">éd.</span></IconBtn><IconBtn danger onClick={() => removeProduct(category.name, product)} title="Supprimer cet aliment"><Trash2 size={13} /></IconBtn></span>}
+                    <span className="flex-shrink-0">
+                      <IconBtn onClick={() => editProduct(custom.find((item) => item.category === category.name && item.nom === product) || { id: `default:${category.name}:${product}`, nom: product, category: category.name })} title="Modifier cet aliment"><span className="font-mono text-xs">éd.</span></IconBtn>
+                      {custom.some((item) => item.category === category.name && item.nom === product) && <IconBtn danger onClick={() => removeProduct(category.name, product)} title="Supprimer cet aliment"><Trash2 size={13} /></IconBtn>}
+                    </span>
                   </div>
                   {[
                     ["p1", profiles.p1.name, C.nutrition],
@@ -1063,8 +1079,20 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
   }, [sessions]);
 
   const openForm = () => setForm({ id: uid(), date: todayISO(), nom: "", exercices: [{ id: uid(), nom: "", series: [{ id: uid(), reps: "", poids: "" }] }] });
-  const save = () => { if (!form.nom.trim()) return; setSessions([...sessions, form]); setForm(null); };
+  const save = () => {
+    const session = {
+      ...form,
+      nom: form.nom.trim() || `Séance du ${fmtDateShort(form.date)}`,
+      exercices: form.exercices
+        .filter((exercise) => exercise.nom.trim() || exercise.series.some((serie) => serie.reps || serie.poids))
+        .map((exercise) => ({ ...exercise, nom: exercise.nom.trim() || "Exercice", series: exercise.series.filter((serie) => serie.reps || serie.poids) })),
+    };
+    const exists = sessions.some((savedSession) => savedSession.id === session.id);
+    setSessions(exists ? sessions.map((savedSession) => savedSession.id === session.id ? session : savedSession) : [...sessions, session]);
+    setForm(null);
+  };
   const remove = (id) => setSessions(sessions.filter((s) => s.id !== id));
+  const edit = (session) => setForm({ ...session, exercices: session.exercices.map((exercise) => ({ ...exercise, series: exercise.series.length ? exercise.series : [{ id: uid(), reps: "", poids: "" }] })) });
   const updateEx = (exId, patch) => setForm({ ...form, exercices: form.exercices.map((ex) => (ex.id === exId ? { ...ex, ...patch } : ex)) });
   const addEx = () => setForm({ ...form, exercices: [...form.exercices, { id: uid(), nom: "", series: [{ id: uid(), reps: "", poids: "" }] }] });
   const removeEx = (exId) => setForm({ ...form, exercices: form.exercices.filter((ex) => ex.id !== exId) });
@@ -1125,7 +1153,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
               ))}
               <button onClick={addEx} className="font-body text-xs mb-4" style={{ color: C.muscu, background: "none", border: "none", cursor: "pointer" }}>+ ajouter un exercice</button>
               <div className="flex gap-2">
-                <PrimaryBtn color={C.muscu} onClick={save}><Check size={14} /> Enregistrer la séance</PrimaryBtn>
+                <PrimaryBtn color={C.muscu} onClick={save}><Check size={14} /> {sessions.some((savedSession) => savedSession.id === form.id) ? "Modifier la séance" : "Enregistrer la séance"}</PrimaryBtn>
                 <PrimaryBtn color={C.inkFaint} onClick={() => setForm(null)}><X size={14} /> Annuler</PrimaryBtn>
               </div>
             </Card>
@@ -1150,7 +1178,10 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
             <Card key={s.id} style={{ padding: 16, marginBottom: 10 }}>
               <div className="flex justify-between items-start mb-2">
                 <div><div className="font-display text-lg" style={{ color: C.ink }}>{s.nom}</div><div className="font-mono text-xs" style={{ color: C.inkFaint }}>{fmtDateShort(s.date)}</div></div>
-                <IconBtn danger onClick={() => remove(s.id)}><Trash2 size={14} /></IconBtn>
+                <div className="flex gap-1">
+                  <IconBtn onClick={() => edit(s)} title="Modifier la séance"><span className="font-mono text-xs">éd.</span></IconBtn>
+                  <IconBtn danger onClick={() => remove(s.id)} title="Supprimer la séance"><Trash2 size={14} /></IconBtn>
+                </div>
               </div>
               {s.exercices.map((ex) => (
                 <div key={ex.id} className="flex items-center gap-3 py-1 flex-wrap">
@@ -1298,17 +1329,16 @@ function PlanningTab({ items, setItems, recipes }) {
 
 function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
   const recipesCount = data.recipes.length;
-  const bodyCount = (data.body[profileId] || []).length;
-  const workoutCount = (data.workouts[profileId] || []).length;
-  const machineCount = (data.machines[profileId] || []).length;
-  const quantityCount = Object.values(data.quantities || {}).filter((quantity) => quantity[profileId]).length;
+  const shoppingCount = data.grocery.filter((item) => !item.checked).length;
+  const bodyCount = (data.body.p1 || []).length + (data.body.p2 || []).length;
+  const workoutCount = (data.workouts.p1 || []).length + (data.workouts.p2 || []).length;
   const shortcuts = [
     { id: "recettes", label: "Mes recettes", description: `${recipesCount} recette${recipesCount > 1 ? "s" : ""}`, icon: BookOpen, color: C.nutrition },
-    { id: "courses", label: "Liste de courses", description: "Liste commune", icon: ShoppingCart, color: C.courses },
-    { id: "quantites", label: "Mes quantités", description: `${quantityCount} repère${quantityCount > 1 ? "s" : ""} renseigné${quantityCount > 1 ? "s" : ""}`, icon: Scale, color: C.corps },
+    { id: "courses", label: "Liste de courses", description: `${shoppingCount} article${shoppingCount > 1 ? "s" : ""} à prendre`, icon: ShoppingCart, color: C.courses },
+    { id: "quantites", label: "Mes quantités", description: "Repères par produit", icon: Scale, color: C.corps },
     { id: "corps", label: "Suivi du corps", description: `${bodyCount} mesure${bodyCount > 1 ? "s" : ""}`, icon: Scale, color: C.corps },
     { id: "muscu", label: "Musculation", description: `${workoutCount} séance${workoutCount > 1 ? "s" : ""}`, icon: Dumbbell, color: C.muscu },
-    { id: "machines", label: "Répertoire machines", description: `${machineCount} machine${machineCount > 1 ? "s" : ""} pour ce profil`, icon: Dumbbell, color: C.muscu },
+    { id: "machines", label: "Répertoire machines", description: "Classer et comparer", icon: Dumbbell, color: C.muscu },
     { id: "planning", label: "Planning", description: "Organiser la semaine", icon: CalendarDays, color: C.planning },
   ];
 
@@ -1330,7 +1360,7 @@ function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
       <div className="grid grid-cols-4 stats-grid gap-3 mb-6">
         {[
           ["Recettes", recipesCount, C.nutrition],
-          ["Repères", quantityCount, C.courses],
+          ["Courses", shoppingCount, C.courses],
           ["Mesures", bodyCount, C.corps],
           ["Séances", workoutCount, C.muscu],
         ].map(([label, value, color]) => (
