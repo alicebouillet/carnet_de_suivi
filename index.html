@@ -46,7 +46,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#F3EEE4" />
+<meta name="theme-color" content="#EAF3EE" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -63,7 +63,7 @@
   body {
     margin: 0;
     color: #26352F;
-    background: #F3EEE4;
+    background: #EAF3EE;
     -webkit-font-smoothing: antialiased;
   }
   .font-display { font-family: 'Fraunces', Georgia, serif; }
@@ -127,6 +127,8 @@
     .content-area .text-3xl { font-size: 28px; }
     .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .home-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .quantity-add-form { grid-template-columns: 1fr 1fr !important; }
+    .quantity-add-form button { grid-column: 1 / -1; justify-content: center; }
   }
   @media (max-width: 480px) {
     .quantity-grid { grid-template-columns: 1fr 1fr 1fr !important; }
@@ -197,7 +199,7 @@ const { useState, useEffect, useRef, useMemo } = React;
 /* ------------------------------------------------------------------ */
 
 const C = {
-  bg: "#F3EEE4", paper: "#FFFDF8", ink: "#26352F", inkSoft: "#68736A", inkFaint: "#A59E91",
+  bg: "#EAF3EE", paper: "#FFFDF8", ink: "#26352F", inkSoft: "#68736A", inkFaint: "#A59E91",
   line: "#E6DED1", lineSoft: "#F7F1E7",
   nutrition: "#4E8F78", nutritionSoft: "#DCEDE4",
   courses: "#C27645", coursesSoft: "#F5E1D2",
@@ -211,7 +213,7 @@ const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const emptyTargets = { kcal: 2000, glucides: 220, lipides: 70, proteines: 100 };
 const emptyStore = {
   profiles: { p1: { name: "Profil 1" }, p2: { name: "Profil 2" } },
-  recipes: [], grocery: [], quantities: {},
+  recipes: [], grocery: [], quantities: {}, customQuantityProducts: [],
   targets: { p1: { ...emptyTargets }, p2: { ...emptyTargets } },
   meals: { p1: [], p2: [] }, body: { p1: [], p2: [] },
   workouts: { p1: [], p2: [] }, machines: { p1: [], p2: [] }, planning: { p1: [], p2: [] },
@@ -680,11 +682,25 @@ const QUANTITY_CATEGORIES = [
   { name: "Autres", color: C.inkSoft, products: ["Lait", "Yaourt", "Fromage blanc", "Lentilles"] },
 ];
 
-function QuantitesTab({ quantities, setQuantities, profiles }) {
+function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProducts, profiles }) {
+  const [newProduct, setNewProduct] = useState("");
+  const [newCategory, setNewCategory] = useState(QUANTITY_CATEGORIES[0].name);
   const values = quantities || {};
+  const custom = customProducts || [];
+  const categories = QUANTITY_CATEGORIES.map((category) => ({
+    ...category,
+    products: [...category.products, ...custom.filter((product) => product.category === category.name).map((product) => product.nom)],
+  }));
   const getQuantity = (key, profileId) => values[key]?.[profileId] || "";
   const setQuantity = (key, profileId, value) => {
     setQuantities({ ...values, [key]: { ...(values[key] || {}), [profileId]: value } });
+  };
+  const addProduct = () => {
+    const nom = newProduct.trim();
+    const exists = categories.some((category) => category.products.some((product) => product.toLowerCase() === nom.toLowerCase()));
+    if (!nom || exists) return;
+    setCustomProducts([...custom, { id: uid(), nom, category: newCategory }]);
+    setNewProduct("");
   };
 
   return (
@@ -694,13 +710,24 @@ function QuantitesTab({ quantities, setQuantities, profiles }) {
         <h2 className="font-display text-2xl" style={{ color: C.ink }}>Quantités par ingrédient</h2>
         <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Construis tes repères alimentaires, produit par produit, pour chaque personne.</p>
       </div>
+      <Card style={{ padding: 16, marginBottom: 16 }}>
+        <div className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: C.inkFaint }}>Ajouter un aliment</div>
+        <div className="grid quantity-add-form gap-2" style={{ gridTemplateColumns: "minmax(180px, 1fr) 180px auto" }}>
+          <TextInput value={newProduct} onChange={setNewProduct} placeholder="Ex. Quinoa, avocat..." />
+          <select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} className="font-body text-sm px-4 py-3 rounded-lg outline-none"
+            style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>
+            {QUANTITY_CATEGORIES.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
+          </select>
+          <PrimaryBtn color={C.courses} onClick={addProduct}><Plus size={15} /> Ajouter</PrimaryBtn>
+        </div>
+      </Card>
       <Card style={{ overflow: "hidden" }}>
         <div className="grid quantity-table-row gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", background: C.lineSoft, color: C.inkFaint }}>
           <span className="font-mono text-xs uppercase tracking-widest">Produit</span>
           <span className="font-mono text-xs text-center">{profiles.p1.name}</span>
           <span className="font-mono text-xs text-center">{profiles.p2.name}</span>
         </div>
-        {QUANTITY_CATEGORIES.map((category) => (
+        {categories.map((category) => (
           <React.Fragment key={category.name}>
             <div className="font-mono text-xs uppercase tracking-widest px-4 py-2" style={{ color: category.color, background: `${category.color}12`, borderTop: `1px solid ${C.line}` }}>{category.name}</div>
             {category.products.map((product, index) => {
@@ -1356,7 +1383,7 @@ function App() {
     accueil: <AccueilTab data={data} profiles={data.profiles} setTab={setTab} />,
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
-    quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} profiles={data.profiles} />,
+    quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} profiles={data.profiles} />,
     machines: <MachinesPoidsTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} profiles={data.profiles} />,
     corps: <CorpsTab entries={data.body[profileId]} setEntries={(v) => update({ body: { ...data.body, [profileId]: v } })} />,
     muscu: <MuscuTab sessions={data.workouts[profileId]} setSessions={(v) => update({ workouts: { ...data.workouts, [profileId]: v } })}
@@ -1367,7 +1394,7 @@ function App() {
   const needsProfile = ["corps", "muscu", "planning", "quantites", "machines"].includes(tab);
 
   return (
-    <div className="font-body" style={{ minHeight: "100vh", background: `radial-gradient(circle at 8% 0%, rgba(255,253,248,0.95) 0, rgba(255,253,248,0) 30%), linear-gradient(135deg, ${C.bg} 0%, #EEE5D8 100%)` }}>
+    <div className="font-body" style={{ minHeight: "100vh", background: `radial-gradient(circle at 8% 0%, rgba(255,253,248,0.95) 0, rgba(255,253,248,0) 30%), linear-gradient(135deg, ${C.bg} 0%, #DFECE5 100%)` }}>
       <div className="app-shell">
         <aside className="sidebar">
           <div className="sidebar-brand mb-6">
