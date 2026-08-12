@@ -202,7 +202,7 @@ const C = {
   bg: "#EAF3EE", paper: "#FFFDF8", ink: "#26352F", inkSoft: "#68736A", inkFaint: "#A59E91",
   line: "#E6DED1", lineSoft: "#F7F1E7",
   nutrition: "#4E8F78", nutritionSoft: "#DCEDE4",
-  courses: "#C27645", coursesSoft: "#F5E1D2",
+  courses: "#C96357", coursesSoft: "#F4DEDA",
   corps: "#52758A", corpsSoft: "#DDEAF0",
   muscu: "#B86F5C", muscuSoft: "#F3DFD8",
   planning: "#8A6B82", planningSoft: "#EDE2EA",
@@ -755,16 +755,19 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
 }
 
 /* ------------------------------------------------------------------ */
-/* Onglet: Poids des machines                                           */
+/* Onglet: Répertoire machines                                           */
 /* ------------------------------------------------------------------ */
 
-function MachinesPoidsTab({ machinesByProfile, setMachinesByProfile, profiles }) {
+const MACHINE_CATEGORIES = ["Dos", "Jambes", "Bras", "Autres"];
+
+function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, profiles }) {
   const profilesMachines = machinesByProfile || { p1: [], p2: [] };
+  const [machineForm, setMachineForm] = useState(null);
   const machineRows = [...new Map(
     [...(profilesMachines.p1 || []), ...(profilesMachines.p2 || [])]
       .filter((machine) => machine.nom && machine.nom.trim())
-      .map((machine) => [machine.nom.trim().toLowerCase(), machine.nom.trim()])
-  )].map(([key, nom]) => ({ key, nom }));
+      .map((machine) => [machine.nom.trim().toLowerCase(), { key: machine.nom.trim().toLowerCase(), nom: machine.nom.trim(), category: machine.category || "Autres" }])
+  )].map(([, row]) => row);
 
   const getMachine = (profileId, key) => (profilesMachines[profileId] || []).find((machine) => machine.nom.trim().toLowerCase() === key);
   const setWeight = (profileId, row, poids) => {
@@ -775,35 +778,63 @@ function MachinesPoidsTab({ machinesByProfile, setMachinesByProfile, profiles })
       : [...current, { id: uid(), nom: row.nom, poids, reglages: "" }];
     setMachinesByProfile({ ...profilesMachines, [profileId]: next });
   };
+  const openMachineForm = (machine) => setMachineForm(machine ? { ...machine } : { id: uid(), nom: "", category: "Dos", reglages: "" });
+  const saveMachine = () => {
+    if (!machineForm.nom.trim()) return;
+    const record = { ...machineForm, nom: machineForm.nom.trim(), category: machineForm.category || "Autres" };
+    const next = { ...profilesMachines };
+    ["p1", "p2"].forEach((profileId) => {
+      const list = next[profileId] || [];
+      const index = list.findIndex((machine) => machine.id === record.id || machine.nom.trim().toLowerCase() === record.nom.toLowerCase());
+      next[profileId] = index === -1 ? [...list, { ...record, poids: "" }] : list.map((machine, itemIndex) => itemIndex === index ? { ...machine, ...record } : machine);
+    });
+    setMachinesByProfile(next);
+    setMachineForm(null);
+  };
+  const removeMachine = (row) => {
+    const next = { ...profilesMachines };
+    ["p1", "p2"].forEach((profileId) => {
+      next[profileId] = (next[profileId] || []).filter((machine) => machine.nom.trim().toLowerCase() !== row.key);
+    });
+    setMachinesByProfile(next);
+  };
+  const groupedRows = MACHINE_CATEGORIES.map((category) => ({ category, rows: machineRows.filter((row) => row.category === category) })).filter((group) => group.rows.length > 0);
 
   return (
     <div>
-      <div className="mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div>
         <Eyebrow color={C.muscu}>Musculation</Eyebrow>
-        <h2 className="font-display text-2xl" style={{ color: C.ink }}>Poids des machines</h2>
-        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Compare rapidement la charge habituelle de chaque machine pour les deux personnes.</p>
+        <h2 className="font-display text-2xl" style={{ color: C.ink }}>Répertoire machines</h2>
+        <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>Classe tes machines et compare rapidement les charges des deux profils.</p>
+        </div>
+        <PrimaryBtn color={C.muscu} onClick={() => openMachineForm()}><Plus size={16} /> Nouvelle machine</PrimaryBtn>
       </div>
-      {machineRows.length === 0 ? (
-        <EmptyState icon={<Dumbbell size={28} />} color={C.muscu} text="Ajoutez d'abord vos machines dans Muscu, puis renseignez leurs poids ici." />
-      ) : (
+      {machineForm && (
+        <Card style={{ padding: 16, marginBottom: 16 }}>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Nom de la machine</label><TextInput value={machineForm.nom} onChange={(value) => setMachineForm({ ...machineForm, nom: value })} placeholder="Ex. Presse à cuisses" /></div>
+            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Catégorie</label><select value={machineForm.category} onChange={(event) => setMachineForm({ ...machineForm, category: event.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>{MACHINE_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
+          </div>
+          <label className="font-mono text-xs" style={{ color: C.inkFaint }}>Réglages</label>
+          <textarea value={machineForm.reglages || ""} onChange={(event) => setMachineForm({ ...machineForm, reglages: event.target.value })} rows={2} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-3 mt-1" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6" }} placeholder="Position du siège, amplitude..." />
+          <div className="flex gap-2"><PrimaryBtn color={C.muscu} onClick={saveMachine}><Check size={14} /> Enregistrer</PrimaryBtn><PrimaryBtn color={C.inkFaint} onClick={() => setMachineForm(null)}><X size={14} /> Annuler</PrimaryBtn></div>
+        </Card>
+      )}
+      {machineRows.length === 0 ? <EmptyState icon={<Dumbbell size={28} />} color={C.muscu} text="Aucune machine enregistrée. Ajoutez votre première machine ci-dessus." /> : (
         <Card style={{ overflow: "hidden" }}>
           <div className="grid machine-table-row gap-2 px-4 py-3" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", background: C.lineSoft, color: C.inkFaint }}>
             <span className="font-mono text-xs uppercase tracking-widest">Machine</span>
             <span className="font-mono text-xs text-center">{profiles.p1.name}</span>
             <span className="font-mono text-xs text-center">{profiles.p2.name}</span>
           </div>
-          {machineRows.map((row, index) => (
-            <div key={row.key} className="grid machine-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
-              <span className="font-body text-sm" style={{ color: C.ink }}>{row.nom}</span>
-              {["p1", "p2"].map((profileId) => {
-                const machine = getMachine(profileId, row.key);
-                return <input key={profileId} aria-label={`${row.nom} ${profiles[profileId].name}`} type="text" value={machine?.poids || ""}
-                  onChange={(event) => setWeight(profileId, row, event.target.value)} placeholder="ex. 35 kg"
-                  className="font-mono text-sm text-center rounded-sm outline-none"
-                  style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.muscu }} />;
-              })}
-            </div>
-          ))}
+          {groupedRows.map((group) => <React.Fragment key={group.category}>
+            <div className="font-mono text-xs uppercase tracking-widest px-4 py-2" style={{ color: C.muscu, background: `${C.muscu}12`, borderTop: `1px solid ${C.line}` }}>{group.category}</div>
+            {group.rows.map((row, index) => <div key={row.key} className="grid machine-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
+              <div className="flex items-center justify-between gap-2"><span className="font-body text-sm" style={{ color: C.ink }}>{row.nom}</span><span className="flex-shrink-0"><IconBtn onClick={() => openMachineForm(getMachine("p1", row.key) || getMachine("p2", row.key))} title="Modifier la machine"><span className="font-mono text-xs">éd.</span></IconBtn><IconBtn danger onClick={() => removeMachine(row)} title="Supprimer la machine"><Trash2 size={13} /></IconBtn></span></div>
+              {["p1", "p2"].map((profileId) => { const machine = getMachine(profileId, row.key); return <input key={profileId} aria-label={`${row.nom} ${profiles[profileId].name}`} type="text" value={machine?.poids || ""} onChange={(event) => setWeight(profileId, row, event.target.value)} placeholder="ex. 35 kg" className="font-mono text-sm text-center rounded-sm outline-none" style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.muscu }} />; })}
+            </div>)}
+          </React.Fragment>)}
         </Card>
       )}
     </div>
@@ -990,10 +1021,8 @@ function CorpsTab({ entries, setEntries }) {
 /* ------------------------------------------------------------------ */
 
 function MuscuTab({ sessions, setSessions, machines, setMachines }) {
-  const [view, setView] = useState("seances");
   const [form, setForm] = useState(null);
   const [trackedEx, setTrackedEx] = useState("");
-  const [machineForm, setMachineForm] = useState(null);
 
   const exerciseNames = useMemo(() => {
     const set = new Set();
@@ -1019,59 +1048,14 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
 
   const sorted = [...sessions].sort((a, b) => (a.date < b.date ? 1 : -1));
 
-  const openMachineForm = () => setMachineForm({ id: uid(), nom: "", poids: "", reglages: "" });
-  const saveMachine = () => { if (!machineForm.nom.trim()) return; const exists = machines.some((m) => m.id === machineForm.id); setMachines(exists ? machines.map((m) => (m.id === machineForm.id ? machineForm : m)) : [...machines, machineForm]); setMachineForm(null); };
-  const removeMachine = (id) => setMachines(machines.filter((m) => m.id !== id));
-  const sortedMachines = [...machines].sort((a, b) => a.nom.localeCompare(b.nom));
-
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <div><Eyebrow color={C.muscu}>Musculation</Eyebrow><h2 className="font-display text-2xl" style={{ color: C.ink }}>{view === "seances" ? "Séances" : "Répertoire machines"}</h2></div>
-        {view === "seances" ? <PrimaryBtn color={C.muscu} onClick={openForm}><Plus size={16} /> Nouvelle séance</PrimaryBtn> : <PrimaryBtn color={C.muscu} onClick={openMachineForm}><Plus size={16} /> Nouvelle machine</PrimaryBtn>}
+        <div><Eyebrow color={C.muscu}>Musculation</Eyebrow><h2 className="font-display text-2xl" style={{ color: C.ink }}>Séances</h2></div>
+        <PrimaryBtn color={C.muscu} onClick={openForm}><Plus size={16} /> Nouvelle séance</PrimaryBtn>
       </div>
 
-      <div className="flex gap-1 mb-5">
-        <button onClick={() => setView("seances")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "seances" ? C.muscu : C.lineSoft, color: view === "seances" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "seances" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Séances</button>
-        <button onClick={() => setView("repertoire")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "repertoire" ? C.muscu : C.lineSoft, color: view === "repertoire" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "repertoire" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Répertoire machines</button>
-      </div>
-
-      {view === "repertoire" ? (
-        <div>
-          {machineForm && (
-            <Card style={{ padding: 16, marginBottom: 16 }}>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Machine / exercice</label><TextInput value={machineForm.nom} onChange={(v) => setMachineForm({ ...machineForm, nom: v })} placeholder="Ex: Presse à cuisses" /></div>
-                <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Poids habituel (kg)</label><TextInput type="number" value={machineForm.poids} onChange={(v) => setMachineForm({ ...machineForm, poids: v })} /></div>
-              </div>
-              <label className="font-mono text-xs" style={{ color: C.inkFaint }}>Réglages (position du siège, amplitude...)</label>
-              <textarea value={machineForm.reglages} onChange={(e) => setMachineForm({ ...machineForm, reglages: e.target.value })} rows={2}
-                className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-3 mt-1" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }} placeholder="Ex: siège position 4, dossier incliné 2" />
-              <div className="flex gap-2">
-                <PrimaryBtn color={C.muscu} onClick={saveMachine}><Check size={14} /> Enregistrer</PrimaryBtn>
-                <PrimaryBtn color={C.inkFaint} onClick={() => setMachineForm(null)}><X size={14} /> Annuler</PrimaryBtn>
-              </div>
-            </Card>
-          )}
-          {machines.length === 0 && !machineForm && <EmptyState icon={<Dumbbell size={28} />} color={C.muscu} text="Aucune machine enregistrée. Ajoutez vos réglages habituels." />}
-          <div className="grid grid-cols-2 gap-3">
-            {sortedMachines.map((m) => (
-              <Card key={m.id} style={{ padding: 14 }}>
-                <div className="flex justify-between items-start">
-                  <div className="font-display text-base" style={{ color: C.ink }}>{m.nom}</div>
-                  <div className="flex gap-1">
-                    <IconBtn onClick={() => setMachineForm(m)}><span className="font-mono text-xs px-1">éd.</span></IconBtn>
-                    <IconBtn danger onClick={() => removeMachine(m.id)}><Trash2 size={14} /></IconBtn>
-                  </div>
-                </div>
-                {m.poids && <span className="font-mono text-xs px-3 py-1.5 rounded-full inline-block mt-2" style={{ background: C.muscuSoft, color: C.muscu }}>{m.poids} kg</span>}
-                {m.reglages && <p className="font-body text-xs mt-2" style={{ color: C.inkSoft }}>{m.reglages}</p>}
-              </Card>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <React.Fragment>
+      <React.Fragment>
           {form && (
             <Card style={{ padding: 20, marginBottom: 20 }}>
               <div className="grid grid-cols-2 gap-3 mb-4">
@@ -1144,8 +1128,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines }) {
               ))}
             </Card>
           ))}
-        </React.Fragment>
-      )}
+      </React.Fragment>
     </div>
   );
 }
@@ -1292,7 +1275,7 @@ function AccueilTab({ data, profiles, setTab }) {
     { id: "quantites", label: "Mes quantités", description: "Repères par produit", icon: Scale, color: C.corps },
     { id: "corps", label: "Suivi du corps", description: `${bodyCount} mesure${bodyCount > 1 ? "s" : ""}`, icon: Scale, color: C.corps },
     { id: "muscu", label: "Musculation", description: `${workoutCount} séance${workoutCount > 1 ? "s" : ""}`, icon: Dumbbell, color: C.muscu },
-    { id: "machines", label: "Poids machines", description: "Comparer les charges", icon: Dumbbell, color: C.muscu },
+    { id: "machines", label: "Répertoire machines", description: "Classer et comparer", icon: Dumbbell, color: C.muscu },
     { id: "planning", label: "Planning", description: "Organiser la semaine", icon: CalendarDays, color: C.planning },
   ];
 
@@ -1342,7 +1325,7 @@ const TABS = [
   { id: "quantites", label: "Quantités", icon: Scale, color: C.courses },
   { id: "corps", label: "Corps", icon: Scale, color: C.corps },
   { id: "muscu", label: "Muscu", icon: Dumbbell, color: C.muscu },
-  { id: "machines", label: "Poids machines", icon: Dumbbell, color: C.muscu },
+  { id: "machines", label: "Répertoire machines", icon: Dumbbell, color: C.muscu },
   { id: "planning", label: "Planning", icon: CalendarDays, color: C.planning },
 ];
 
@@ -1384,7 +1367,7 @@ function App() {
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
     quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} profiles={data.profiles} />,
-    machines: <MachinesPoidsTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} profiles={data.profiles} />,
+    machines: <RepertoireMachinesTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} profiles={data.profiles} />,
     corps: <CorpsTab entries={data.body[profileId]} setEntries={(v) => update({ body: { ...data.body, [profileId]: v } })} />,
     muscu: <MuscuTab sessions={data.workouts[profileId]} setSessions={(v) => update({ workouts: { ...data.workouts, [profileId]: v } })}
       machines={data.machines[profileId]} setMachines={(v) => update({ machines: { ...data.machines, [profileId]: v } })} />,
