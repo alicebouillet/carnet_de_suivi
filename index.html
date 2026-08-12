@@ -213,7 +213,7 @@ const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const emptyTargets = { kcal: 2000, glucides: 220, lipides: 70, proteines: 100 };
 const emptyStore = {
   profiles: { p1: { name: "Profil 1" }, p2: { name: "Profil 2" } },
-  recipes: [], grocery: [], quantities: {}, customQuantityProducts: [],
+  recipes: [], grocery: [], quantities: {}, customQuantityProducts: [], hiddenQuantityProducts: [],
   targets: { p1: { ...emptyTargets }, p2: { ...emptyTargets } },
   meals: { p1: [], p2: [] }, body: { p1: [], p2: [] },
   workouts: { p1: [], p2: [] }, machines: { p1: [], p2: [] }, planning: { p1: [], p2: [] },
@@ -339,13 +339,15 @@ function MiniLineChart({ data, color, height = 170 }) {
   const path = points.filter((p) => p.y != null).map((p, i) => (i === 0 ? "M" : "L") + p.x + "," + p.y).join(" ");
 
   return (
-    <svg viewBox={`0 0 ${w} ${height + 22}`} width="100%" height={height + 22} preserveAspectRatio="none">
-      <path d={path} fill="none" stroke={color} strokeWidth="2.5" />
-      {points.map((p, i) => p.y != null && <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} />)}
-      {points.map((p, i) => (
-        <text key={i} x={p.x} y={height + 16} fontSize="10" fontFamily="IBM Plex Mono" fill={C.inkFaint} textAnchor="middle">{p.label}</text>
-      ))}
-    </svg>
+    <div style={{ width: "100%", maxWidth: 760, margin: "0 auto" }}>
+      <svg viewBox={`0 0 ${w} ${height + 22}`} width="100%" height="auto" preserveAspectRatio="xMidYMid meet" style={{ display: "block", aspectRatio: `${w} / ${height + 22}` }}>
+        <path d={path} fill="none" stroke={color} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+        {points.map((p, i) => p.y != null && <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} vectorEffect="non-scaling-stroke" />)}
+        {points.map((p, i) => (
+          <text key={i} x={p.x} y={height + 16} fontSize="10" fontFamily="IBM Plex Mono" fill={C.inkFaint} textAnchor="middle">{p.label}</text>
+        ))}
+      </svg>
+    </div>
   );
 }
 
@@ -682,15 +684,19 @@ const QUANTITY_CATEGORIES = [
   { name: "Autres", color: C.inkSoft, products: ["Lait", "Yaourt", "Fromage blanc", "Lentilles"] },
 ];
 
-function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProducts, profiles }) {
+function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProducts, hiddenProducts, setHiddenProducts, profiles }) {
   const [newProduct, setNewProduct] = useState("");
   const [newCategory, setNewCategory] = useState(QUANTITY_CATEGORIES[0].name);
   const [editingProductId, setEditingProductId] = useState(null);
   const values = quantities || {};
   const custom = customProducts || [];
+  const hidden = hiddenProducts || [];
   const categories = QUANTITY_CATEGORIES.map((category) => ({
     ...category,
-    products: [...category.products, ...custom.filter((product) => product.category === category.name).map((product) => product.nom)],
+    products: [
+      ...category.products.filter((product) => !hidden.includes(`${category.name}:${product}`)),
+      ...custom.filter((product) => product.category === category.name).map((product) => product.nom),
+    ],
   }));
   const getQuantity = (key, profileId) => values[key]?.[profileId] || "";
   const setQuantity = (key, profileId, value) => {
@@ -698,10 +704,11 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
   };
   const saveProduct = () => {
     const nom = newProduct.trim();
-    const editingDefaultName = editingProductId?.startsWith("default:") ? editingProductId.split(":").slice(2).join(":") : "";
-    const exists = categories.some((category) => category.products.some((product) => product.toLowerCase() === nom.toLowerCase()))
-      && !custom.some((product) => product.id === editingProductId && product.nom.toLowerCase() === nom.toLowerCase())
-      && editingDefaultName.toLowerCase() !== nom.toLowerCase();
+    const editingDefault = editingProductId?.startsWith("default:") ? editingProductId.slice("default:".length).split(":") : null;
+    const targetIsDefault = QUANTITY_CATEGORIES.some((category) => category.name === newCategory && category.products.some((product) => product.toLowerCase() === nom.toLowerCase()));
+    const sameDefault = editingDefault && editingDefault[0] === newCategory && editingDefault.slice(1).join(":").toLowerCase() === nom.toLowerCase();
+    const duplicateCustom = custom.some((product) => product.id !== editingProductId && product.category === newCategory && product.nom.toLowerCase() === nom.toLowerCase());
+    const exists = duplicateCustom || (targetIsDefault && !sameDefault);
     if (!nom || exists) return;
     if (!editingProductId || editingProductId.startsWith("default:")) {
       const previousDefault = editingProductId && editingProductId.startsWith("default:") ? editingProductId.slice("default:".length) : "";
@@ -710,6 +717,7 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
       if (previousKey !== nextKey && values[previousKey]) {
         setQuantities({ ...values, [nextKey]: values[previousKey] });
       }
+      if (editingDefault) setHiddenProducts([...hidden, `${editingDefault[0]}:${editingDefault.slice(1).join(":")}`]);
       setCustomProducts([...custom, { id: uid(), nom, category: newCategory }]);
     } else {
       const previous = custom.find((product) => product.id === editingProductId);
@@ -733,8 +741,18 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
     setEditingProductId(product.id);
   };
   const removeProduct = (categoryName, productName) => {
-    if (!window.confirm(`Supprimer ${productName} de tes aliments personnalisés ?`)) return;
-    setCustomProducts(custom.filter((product) => !(product.category === categoryName && product.nom === productName)));
+    const productKey = `${categoryName}:${productName}`;
+    const customMatch = custom.some((product) => product.category === categoryName && product.nom === productName);
+    if (customMatch) {
+      setCustomProducts(custom.filter((product) => !(product.category === categoryName && product.nom === productName)));
+    } else {
+      setHiddenProducts(hidden.includes(productKey) ? hidden : [...hidden, productKey]);
+    }
+    if (values[productKey]) {
+      const nextQuantities = { ...values };
+      delete nextQuantities[productKey];
+      setQuantities(nextQuantities);
+    }
   };
 
   return (
@@ -773,7 +791,7 @@ function QuantitesTab({ quantities, setQuantities, customProducts, setCustomProd
                     <span className="font-body text-sm" style={{ color: C.ink }}>{product}</span>
                     <span className="flex-shrink-0">
                       <IconBtn onClick={() => editProduct(custom.find((item) => item.category === category.name && item.nom === product) || { id: `default:${category.name}:${product}`, nom: product, category: category.name })} title="Modifier cet aliment"><span className="font-mono text-xs">éd.</span></IconBtn>
-                      {custom.some((item) => item.category === category.name && item.nom === product) && <IconBtn danger onClick={() => removeProduct(category.name, product)} title="Supprimer cet aliment"><Trash2 size={13} /></IconBtn>}
+                      <IconBtn danger onClick={() => removeProduct(category.name, product)} title="Supprimer cet aliment"><Trash2 size={13} /></IconBtn>
                     </span>
                   </div>
                   {[
@@ -1437,7 +1455,7 @@ function App() {
     accueil: <AccueilTab data={data} profiles={data.profiles} profileId={profileId} setProfileId={setProfileId} setTab={setTab} />,
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
-    quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} profiles={data.profiles} />,
+    quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} hiddenProducts={data.hiddenQuantityProducts} setHiddenProducts={(v) => update({ hiddenQuantityProducts: v })} profiles={data.profiles} />,
     machines: <RepertoireMachinesTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} profiles={data.profiles} />,
     corps: <CorpsTab entries={data.body[profileId]} setEntries={(v) => update({ body: { ...data.body, [profileId]: v } })} />,
     muscu: <MuscuTab sessions={data.workouts[profileId]} setSessions={(v) => update({ workouts: { ...data.workouts, [profileId]: v } })}
