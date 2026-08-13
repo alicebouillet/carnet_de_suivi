@@ -1054,7 +1054,21 @@ function RepasTab({ recipes, meals, setMeals, targets, setTargets }) {
 function CorpsTab({ entries, setEntries }) {
   const [form, setForm] = useState(null);
   const sorted = [...entries].sort((a, b) => (a.date < b.date ? 1 : -1));
-  const chartData = [...entries].sort((a, b) => (a.date < b.date ? -1 : 1)).map((e) => ({ label: fmtDateShort(e.date), value: Number(e.poids) || null }));
+  const metricConfigs = [
+    { key: "poids", label: "Poids", unit: "kg", color: C.corps },
+    { key: "graisse", label: "Masse grasse", unit: "%", color: "#D77B6B" },
+    { key: "muscle", label: "Masse musculaire", unit: "%", color: "#7897A8" },
+    { key: "eau", label: "Eau", unit: "%", color: "#4E8F78" },
+  ];
+  const chartGroups = metricConfigs
+    .map((metric) => ({
+      ...metric,
+      data: [...entries]
+        .sort((a, b) => (a.date < b.date ? -1 : 1))
+        .map((e) => ({ label: fmtDateShort(e.date), value: Number(e[metric.key]) || null }))
+        .filter((point) => point.value !== null),
+    }))
+    .filter((metric) => metric.data.length > 1);
 
   const openForm = () => setForm({ id: uid(), date: todayISO(), poids: "", graisse: "", muscle: "", eau: "", os: "" });
   const save = () => {
@@ -1092,11 +1106,15 @@ function CorpsTab({ entries, setEntries }) {
 
       {entries.length === 0 && !form && <EmptyState icon={<Scale size={28} />} color={C.corps} text="Aucune mesure enregistrée pour le moment." />}
 
-      {entries.length > 1 && (
-        <Card style={{ padding: 16, marginBottom: 16 }}>
-          <div className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: C.inkFaint }}>Évolution du poids</div>
-          <MiniLineChart data={chartData} color={C.corps} />
-        </Card>
+      {chartGroups.length > 0 && (
+        <div style={{ display: "grid", gap: 16, marginBottom: 16 }}>
+          {chartGroups.map((metric) => (
+            <Card key={metric.key} style={{ padding: 16 }}>
+              <div className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: C.inkFaint }}>Évolution de la {metric.label.toLowerCase()}</div>
+              <MiniLineChart data={metric.data} color={metric.color} />
+            </Card>
+          ))}
+        </div>
       )}
 
       {sorted.length > 0 && (
