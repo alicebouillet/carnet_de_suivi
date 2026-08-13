@@ -335,6 +335,8 @@ const CalendarDays = (p) => <Icon {...p}><rect x="3" y="4" width="18" height="17
 const BookOpen = (p) => <Icon {...p}><path d="M3 5c3 0 6 1 9 3v11c-3-2-6-3-9-3z" /><path d="M21 5c-3 0-6 1-9 3v11c3-2 6-3 9-3z" /></Icon>;
 const Flame = (p) => <Icon {...p}><path d="M12 2c1.2 4-3 5.2-3 9.2a3 3 0 0 0 6 0c0-1-1-2-1-3 2 1 3 3.2 3 6.2a5 5 0 0 1-10 0c0-5.2 3-6.4 5-12.4z" /></Icon>;
 const Download = (p) => <Icon {...p}><path d="M12 3v12" /><path d="M7 10l5 5 5-5" /><path d="M4 19h16" /></Icon>;
+const Search = (p) => <Icon {...p}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></Icon>;
+const Calculator = (p) => <Icon {...p}><rect x="4" y="2" width="16" height="20" rx="2" /><line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="11" x2="8" y2="11" /><line x1="12" y1="11" x2="12" y2="11" /><line x1="16" y1="11" x2="16" y2="11" /><line x1="8" y1="15" x2="8" y2="15" /><line x1="12" y1="15" x2="12" y2="15" /><line x1="16" y1="15" x2="16" y2="15" /><line x1="8" y1="19" x2="8" y2="19" /><line x1="12" y1="19" x2="12" y2="19" /></Icon>;
 
 /* ------------------------------------------------------------------ */
 /* Petit graphe SVG (pas de dépendance externe)                        */
@@ -592,6 +594,147 @@ function RecettesTab({ recipes, setRecipes, addToGrocery }) {
           </Card>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Onglet: Calories (Open Food Facts)                                   */
+/* ------------------------------------------------------------------ */
+
+function CaloriesTab({ recipes, setRecipes }) {
+  const blankRow = () => ({ id: uid(), query: "", qte: 100, results: [], loading: false, error: "", selected: null });
+  const [rows, setRows] = useState([blankRow()]);
+  const [portions, setPortions] = useState(1);
+  const [nomRecette, setNomRecette] = useState("");
+  const timers = useRef({});
+
+  const updateRow = (id, patch) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+
+  const search = async (id, q) => {
+    if (!q.trim()) { updateRow(id, { results: [], loading: false, error: "" }); return; }
+    updateRow(id, { loading: true, error: "" });
+    try {
+      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=6&fields=product_name,brands,nutriments,code`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("network");
+      const json = await res.json();
+      const products = (json.products || [])
+        .filter((p) => p.product_name && p.nutriments && p.nutriments["energy-kcal_100g"] != null)
+        .map((p) => ({
+          code: p.code,
+          nom: p.product_name,
+          marque: p.brands || "",
+          kcal100: Number(p.nutriments["energy-kcal_100g"] || 0),
+          glucides100: Number(p.nutriments["carbohydrates_100g"] || 0),
+          lipides100: Number(p.nutriments["fat_100g"] || 0),
+          proteines100: Number(p.nutriments["proteins_100g"] || 0),
+        }));
+      updateRow(id, { results: products, loading: false, error: products.length ? "" : "Aucun résultat" });
+    } catch (e) {
+      updateRow(id, { loading: false, error: "Recherche impossible (vérifie ta connexion)" });
+    }
+  };
+
+  const onQueryChange = (id, value) => {
+    updateRow(id, { query: value, selected: null });
+    clearTimeout(timers.current[id]);
+    timers.current[id] = setTimeout(() => search(id, value), 450);
+  };
+
+  const selectProduct = (id, product) => updateRow(id, { selected: product, query: product.nom, results: [] });
+  const addRow = () => setRows((rs) => [...rs, blankRow()]);
+  const removeRow = (id) => setRows((rs) => (rs.length > 1 ? rs.filter((r) => r.id !== id) : rs));
+
+  const totals = rows.reduce((acc, r) => {
+    if (!r.selected || !r.qte) return acc;
+    const f = Number(r.qte) / 100;
+    return {
+      kcal: acc.kcal + r.selected.kcal100 * f,
+      glucides: acc.glucides + r.selected.glucides100 * f,
+      lipides: acc.lipides + r.selected.lipides100 * f,
+      proteines: acc.proteines + r.selected.proteines100 * f,
+    };
+  }, { kcal: 0, glucides: 0, lipides: 0, proteines: 0 });
+
+  const perPortion = (v) => (portions > 0 ? v / portions : v);
+
+  const saveAsRecipe = () => {
+    if (!nomRecette.trim()) return;
+    const ingredients = rows.filter((r) => r.selected).map((r) => ({ id: uid(), nom: r.selected.nom, qte: r.qte, unite: "g" }));
+    const recipe = {
+      id: uid(), nom: nomRecette, portions: portions || 1,
+      kcal: Math.round(perPortion(totals.kcal)), glucides: Math.round(perPortion(totals.glucides)),
+      lipides: Math.round(perPortion(totals.lipides)), proteines: Math.round(perPortion(totals.proteines)),
+      ingredients: ingredients.length ? ingredients : [{ id: uid(), nom: "", qte: "", unite: "" }], etapes: "",
+    };
+    setRecipes([...recipes, recipe]);
+    setNomRecette("");
+  };
+
+  return (
+    <div>
+      <div className="mb-4">
+        <Eyebrow color={C.nutrition}>Calories</Eyebrow>
+        <h2 className="font-display text-2xl" style={{ color: C.ink }}>Calculateur de calories</h2>
+        <p className="font-body text-xs mt-1" style={{ color: C.inkFaint }}>Recherche chaque ingrédient dans la base Open Food Facts et indique la quantité (en grammes).</p>
+      </div>
+
+      {rows.map((r) => (
+        <Card key={r.id} style={{ padding: 16, marginBottom: 12, position: "relative" }}>
+          <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: "1fr 110px 32px" }}>
+            <div style={{ position: "relative" }}>
+              <TextInput value={r.query} onChange={(v) => onQueryChange(r.id, v)} placeholder="Ingrédient (ex : riz, poulet, yaourt nature...)" />
+              {r.loading && <div className="font-mono text-xs mt-1" style={{ color: C.inkFaint }}>recherche…</div>}
+              {!r.loading && r.error && <div className="font-mono text-xs mt-1" style={{ color: "#A94B3D" }}>{r.error}</div>}
+              {r.results.length > 0 && (
+                <div className="mt-1 rounded-lg overflow-hidden" style={{ border: `1px solid ${C.line}`, background: C.paper, boxShadow: "0 6px 16px rgba(45,62,95,0.1)", position: "absolute", zIndex: 5, width: "100%" }}>
+                  {r.results.map((p, i) => (
+                    <button key={p.code || i} onClick={() => selectProduct(r.id, p)} className="font-body text-xs w-full text-left px-3 py-2"
+                      style={{ background: "none", border: "none", cursor: "pointer", display: "block", borderBottom: i < r.results.length - 1 ? `1px solid ${C.lineSoft}` : "none", color: C.inkSoft }}>
+                      <span style={{ color: C.ink }}>{p.nom}</span>{p.marque && <span style={{ color: C.inkFaint }}> · {p.marque}</span>}
+                      <span className="font-mono" style={{ color: C.nutrition, float: "right" }}>{Math.round(p.kcal100)} kcal/100g</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <TextInput type="number" value={r.qte} onChange={(v) => updateRow(r.id, { qte: v })} placeholder="Qté (g)" />
+            <IconBtn danger onClick={() => removeRow(r.id)} title="Supprimer"><Trash2 size={15} /></IconBtn>
+          </div>
+          {r.selected && (
+            <div className="flex gap-2 flex-wrap">
+              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.nutritionSoft, color: C.nutrition }}>
+                {Math.round((r.selected.kcal100 * (Number(r.qte) || 0)) / 100)} kcal pour {r.qte || 0} g
+              </span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>{Math.round(r.selected.kcal100)} kcal/100g</span>
+            </div>
+          )}
+        </Card>
+      ))}
+
+      <button onClick={addRow} className="font-body text-xs mb-5" style={{ color: C.nutrition, background: "none", border: "none", cursor: "pointer" }}>+ ajouter un ingrédient</button>
+
+      <Card style={{ padding: 20 }}>
+        <div className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: C.inkFaint }}>Total</div>
+        <div className="flex gap-3 mt-1 mb-4 flex-wrap">
+          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.nutritionSoft, color: C.nutrition }}>{Math.round(totals.kcal)} kcal</span>
+          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>G {Math.round(totals.glucides)}g</span>
+          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>L {Math.round(totals.lipides)}g</span>
+          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>P {Math.round(totals.proteines)}g</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 items-end mb-4">
+          <div>
+            <label className="font-mono text-xs" style={{ color: C.inkFaint }}>Portions</label>
+            <TextInput type="number" value={portions} onChange={setPortions} />
+          </div>
+          <div className="font-mono text-xs" style={{ color: C.inkFaint }}>Par portion : {Math.round(perPortion(totals.kcal))} kcal · G{Math.round(perPortion(totals.glucides))} L{Math.round(perPortion(totals.lipides))} P{Math.round(perPortion(totals.proteines))}</div>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <TextInput value={nomRecette} onChange={setNomRecette} placeholder="Nom pour enregistrer comme recette (optionnel)" className="flex-1" />
+          <PrimaryBtn color={C.nutrition} onClick={saveAsRecipe}><Check size={15} /> Enregistrer comme recette</PrimaryBtn>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -1497,6 +1640,7 @@ function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
 const TABS = [
   { id: "accueil", label: "Accueil", icon: Home, color: C.ink },
   { id: "recettes", label: "Recettes", icon: BookOpen, color: C.nutrition },
+  { id: "calories", label: "Calories", icon: Calculator, color: C.nutrition },
   { id: "courses", label: "Courses", icon: ShoppingCart, color: C.courses },
   { id: "quantites", label: "Quantités", icon: Scale, color: C.courses },
   { id: "corps", label: "Corps", icon: Scale, color: C.corps },
@@ -1541,6 +1685,7 @@ function App() {
   const TabComponent = {
     accueil: <AccueilTab data={data} profiles={data.profiles} profileId={profileId} setProfileId={setProfileId} setTab={setTab} />,
     recettes: <RecettesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} addToGrocery={addToGrocery} />,
+    calories: <CaloriesTab recipes={data.recipes} setRecipes={(v) => update({ recipes: v })} />,
     courses: <CoursesTab grocery={data.grocery} setGrocery={(v) => update({ grocery: v })} />,
     quantites: <QuantitesTab quantities={data.quantities} setQuantities={(v) => update({ quantities: v })} quantityMeta={data.quantityMeta} setQuantityMeta={(v) => update({ quantityMeta: v })} customCategories={data.customQuantityCategories} setCustomCategories={(v) => update({ customQuantityCategories: v })} customProducts={data.customQuantityProducts} setCustomProducts={(v) => update({ customQuantityProducts: v })} hiddenProducts={data.hiddenQuantityProducts} setHiddenProducts={(v) => update({ hiddenQuantityProducts: v })} profiles={data.profiles} />,
     machines: <RepertoireMachinesTab machinesByProfile={data.machines} setMachinesByProfile={(v) => update({ machines: v })} customCategories={data.customMachineCategories} setCustomCategories={(v) => update({ customMachineCategories: v })} profiles={data.profiles} />,
