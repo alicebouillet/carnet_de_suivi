@@ -1056,9 +1056,15 @@ function CorpsTab({ entries, setEntries }) {
   const sorted = [...entries].sort((a, b) => (a.date < b.date ? 1 : -1));
   const chartData = [...entries].sort((a, b) => (a.date < b.date ? -1 : 1)).map((e) => ({ label: fmtDateShort(e.date), value: Number(e.poids) || null }));
 
-  const openForm = () => setForm({ date: todayISO(), poids: "", graisse: "", muscle: "", eau: "", os: "" });
-  const save = () => { if (!form.poids) return; setEntries([...entries.filter((e) => e.date !== form.date), { id: uid(), ...form }]); setForm(null); };
+  const openForm = () => setForm({ id: uid(), date: todayISO(), poids: "", graisse: "", muscle: "", eau: "", os: "" });
+  const save = () => {
+    if (!form.poids && !form.graisse && !form.muscle && !form.eau && !form.os) return;
+    const exists = entries.some((entry) => entry.id === form.id);
+    setEntries(exists ? entries.map((entry) => entry.id === form.id ? form : entry) : [...entries, form]);
+    setForm(null);
+  };
   const remove = (id) => setEntries(entries.filter((e) => e.id !== id));
+  const edit = (entry) => setForm({ ...entry });
 
   return (
     <div>
@@ -1078,7 +1084,7 @@ function CorpsTab({ entries, setEntries }) {
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Masse osseuse (kg)</label><TextInput type="number" value={form.os} onChange={(v) => setForm({ ...form, os: v })} /></div>
           </div>
           <div className="flex gap-2">
-            <PrimaryBtn color={C.corps} onClick={save}><Check size={14} /> Enregistrer</PrimaryBtn>
+            <PrimaryBtn color={C.corps} onClick={save}><Check size={14} /> {entries.some((entry) => entry.id === form.id) ? "Modifier" : "Enregistrer"}</PrimaryBtn>
             <PrimaryBtn color={C.inkFaint} onClick={() => setForm(null)}><X size={14} /> Annuler</PrimaryBtn>
           </div>
         </Card>
@@ -1103,7 +1109,10 @@ function CorpsTab({ entries, setEntries }) {
               {e.muscle && <span className="font-mono text-xs" style={{ color: C.inkSoft }}>muscle {e.muscle}%</span>}
               {e.eau && <span className="font-mono text-xs" style={{ color: C.inkSoft }}>eau {e.eau}%</span>}
               {e.os && <span className="font-mono text-xs" style={{ color: C.inkSoft }}>os {e.os}kg</span>}
-              <IconBtn danger onClick={() => remove(e.id)}><Trash2 size={13} /></IconBtn>
+              <div className="flex gap-1">
+                <IconBtn onClick={() => edit(e)} title="Modifier cette mesure"><span className="font-mono text-xs">éd.</span></IconBtn>
+                <IconBtn danger onClick={() => remove(e.id)} title="Supprimer cette mesure"><Trash2 size={13} /></IconBtn>
+              </div>
             </div>
           ))}
         </Card>
