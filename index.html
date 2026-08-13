@@ -13,7 +13,7 @@
     if (!el) {
       el = document.createElement("div");
       el.id = "diag";
-      el.style.cssText = "font-family:monospace;font-size:13px;padding:20px;color:#A94B3D;background:#FFE5D4;white-space:pre-wrap;line-height:1.5;";
+      el.style.cssText = "font-family:monospace;font-size:13px;padding:20px;color:#B23A22;background:#F3DFD3;white-space:pre-wrap;line-height:1.5;";
       document.body.appendChild(el);
     }
     el.textContent += (el.textContent ? "\n\n" : "") + msg;
@@ -46,7 +46,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#EAF3EE" />
+<meta name="theme-color" content="#17242C" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -56,35 +56,39 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Karla:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    color: #1B2A28;
-    background:
-      radial-gradient(circle at top left, rgba(110, 168, 165, 0.18), transparent 26%),
-      radial-gradient(circle at bottom right, rgba(217, 153, 122, 0.12), transparent 22%),
-      linear-gradient(180deg, #F4F0EA 0%, #ECF3F1 100%);
+    color: #17242C;
+    background-color: #E9EEE6;
+    background-image:
+      linear-gradient(rgba(23, 36, 44, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23, 36, 44, 0.055) 1px, transparent 1px),
+      linear-gradient(rgba(23, 36, 44, 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23, 36, 44, 0.09) 1px, transparent 1px);
+    background-size: 22px 22px, 22px 22px, 110px 110px, 110px 110px;
+    background-position: -1px -1px;
     -webkit-font-smoothing: antialiased;
   }
-  .font-display { font-family: 'Cormorant Garamond', Georgia, serif; letter-spacing: -0.02em; }
-  .font-body { font-family: 'Manrope', sans-serif; }
-  .font-mono { font-family: 'JetBrains Mono', monospace; }
-  input, textarea, select, button { font-family: 'Manrope', sans-serif; }
+  .font-display { font-family: 'Space Mono', 'Courier New', monospace; letter-spacing: -0.01em; font-weight: 700; }
+  .font-body { font-family: 'Karla', sans-serif; }
+  .font-mono { font-family: 'Space Mono', 'Courier New', monospace; }
+  input, textarea, select, button { font-family: 'Karla', sans-serif; }
   button { transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
   button:active { transform: translateY(1px) scale(.98); }
-  input::placeholder, textarea::placeholder { color: #A59E91; }
+  input::placeholder, textarea::placeholder { color: #8B968E; }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb { background: #D8CDBD; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: #C3CDBE; border-radius: 4px; }
   /* minimal utility layer (no build step, no Tailwind) */
   .flex{display:flex}.grid{display:grid}.hidden{display:none}
   .items-center{align-items:center}.items-start{align-items:flex-start}.items-baseline{align-items:baseline}
   .justify-between{justify-content:space-between}.justify-center{justify-content:center}
   .flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.flex-shrink-0{flex-shrink:0}
   .gap-1{gap:4px}.gap-1\.5{gap:6px}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}
-  .rounded{border-radius:10px}.rounded-md{border-radius:12px}.rounded-lg{border-radius:18px}.rounded-full{border-radius:999px}.rounded-sm{border-radius:8px}
+  .rounded{border-radius:4px}.rounded-md{border-radius:4px}.rounded-lg{border-radius:4px}.rounded-full{border-radius:999px}.rounded-sm{border-radius:3px}
   .p-1\.5{padding:6px}.px-1{padding-left:4px;padding-right:4px}.px-1\.5{padding-left:6px;padding-right:6px}
   .px-2{padding-left:8px;padding-right:8px}.px-2\.5{padding-left:10px;padding-right:10px}.px-3{padding-left:12px;padding-right:12px}
   .px-3\.5{padding-left:14px;padding-right:14px}.px-4{padding-left:16px;padding-right:16px}.px-5{padding-left:20px;padding-right:20px}
@@ -113,22 +117,37 @@
   @media (min-width: 640px) { .sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} }
   .app-shell { min-height: 100vh; display: flex; }
   .sidebar {
-    width: 252px;
-    flex: 0 0 252px;
-    padding: 26px 18px 18px;
-    border-right: 1px solid rgba(27, 42, 40, 0.08);
-    background: rgba(255, 253, 250, 0.72);
-    backdrop-filter: blur(8px);
+    width: 264px;
+    flex: 0 0 264px;
+    padding: 32px 0 18px 36px;
+    background: #17242C;
+    position: relative;
+    z-index: 2;
   }
-  .sidebar-nav { display: flex; flex-direction: column; gap: 7px; }
-  .sidebar-nav button { width: 100%; justify-content: flex-start; }
-  .content-area { flex: 1; min-width: 0; }
+  .sidebar::before {
+    content: "";
+    position: absolute; left: 14px; top: 4px; bottom: 4px; width: 8px;
+    background-image: radial-gradient(circle, #E9EEE6 3.5px, transparent 4px);
+    background-size: 8px 38px;
+    background-repeat: repeat-y;
+    opacity: .55;
+  }
+  .sidebar-brand { padding-right: 22px; }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 3px; }
+  .sidebar-nav button {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 7px 0 0 7px !important;
+    padding-right: 22px !important;
+  }
+  .content-area { flex: 1; min-width: 0; background: #E9EEE6; }
   @media (max-width: 700px) {
     .app-shell { display: block; }
-    .sidebar { width: 100%; padding: 14px 16px 10px; border-right: none; border-bottom: 1px solid rgba(230,222,209,.9); }
+    .sidebar { width: 100%; padding: 14px 16px 10px; }
+    .sidebar::before { display: none; }
     .sidebar-brand { display: none; }
     .sidebar-nav { flex-direction: row; overflow-x: auto; padding-bottom: 2px; }
-    .sidebar-nav button { width: auto; flex: 0 0 auto; justify-content: center; white-space: nowrap; }
+    .sidebar-nav button { width: auto; flex: 0 0 auto; justify-content: center; white-space: nowrap; border-radius: 6px !important; padding-right: 16px !important; }
     .max-w-4xl { width: 100%; padding: 24px 16px 72px !important; }
     .content-area .flex.items-center.justify-between { flex-wrap: wrap; gap: 12px; }
     [style*="1fr 90px"] { grid-template-columns: 1fr 1fr !important; }
@@ -208,25 +227,28 @@ const { useState, useEffect, useRef, useMemo } = React;
 /* Tokens                                                              */
 /* ------------------------------------------------------------------ */
 
+/* Palette "carnet de mesures" : encre + papier quadrillé + 4 encres de tampon
+   par domaine, et un gris graphite pour le planning (provisoire = crayon,
+   pas encore "tamponné" comme une donnée mesurée). */
 const C = {
-  bg: "#F4F0EA",
-  paper: "#FFFDF9",
-  paperAlt: "#F5F7F6",
-  ink: "#1B2A28",
-  inkSoft: "#4A6460",
-  inkFaint: "#7A8A87",
-  line: "#D8E2DE",
-  lineSoft: "#EDF3F1",
-  nutrition: "#2F5D53",
-  nutritionSoft: "#DDEBE7",
-  courses: "#D9997A",
-  coursesSoft: "#F7E7DF",
-  corps: "#274A5D",
-  corpsSoft: "#DDEAEF",
-  muscu: "#A86E5D",
-  muscuSoft: "#F5E2DA",
-  planning: "#72677A",
-  planningSoft: "#EFE7F1",
+  bg: "#E9EEE6",
+  paper: "#FFFFFF",
+  paperAlt: "#F2F5EE",
+  ink: "#17242C",
+  inkSoft: "#455761",
+  inkFaint: "#78877F",
+  line: "#D7DED2",
+  lineSoft: "#EEF1E8",
+  nutrition: "#2F6F52",
+  nutritionSoft: "#DEEBE2",
+  courses: "#C1502B",
+  coursesSoft: "#F3DFD3",
+  corps: "#1F5FA8",
+  corpsSoft: "#DCE7F3",
+  muscu: "#C6871A",
+  muscuSoft: "#F2E5CB",
+  planning: "#5B6B72",
+  planningSoft: "#E4E9E7",
 };
 
 const REPAS_TYPES = ["Petit-déjeuner", "Déjeuner", "Dîner", "Collation"];
@@ -367,7 +389,7 @@ function MiniLineChart({ data, color, height = 170 }) {
         <path d={path} fill="none" stroke={color} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
         {points.map((p, i) => p.y != null && <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} vectorEffect="non-scaling-stroke" />)}
         {points.map((p, i) => (
-          <text key={i} x={p.x} y={height + 16} fontSize="10" fontFamily="IBM Plex Mono" fill={C.inkFaint} textAnchor="middle">{p.label}</text>
+          <text key={i} x={p.x} y={height + 16} fontSize="10" fontFamily="'Space Mono', monospace" fill={C.inkFaint} textAnchor="middle">{p.label}</text>
         ))}
       </svg>
     </div>
@@ -400,16 +422,16 @@ function RingProgress({ value, target, color, label, unit, size = 88 }) {
 }
 
 function Card({ children, style = {}, className = "" }) {
-  return <div className={`rounded-lg ${className}`} style={{ background: C.paper, border: `1px solid ${C.line}`, borderRadius: 22, boxShadow: "0 18px 38px rgba(26, 41, 38, 0.06)", ...style }}>{children}</div>;
+  return <div className={`rounded ${className}`} style={{ background: C.paper, border: `1px solid ${C.line}`, borderRadius: 3, boxShadow: "2px 2px 0 rgba(23,36,44,0.05)", ...style }}>{children}</div>;
 }
 function Eyebrow({ children, color }) {
   return <div className="font-mono uppercase text-xs tracking-widest mb-1" style={{ color }}>{children}</div>;
 }
 function IconBtn({ onClick, children, title, danger }) {
   return (
-    <button onClick={onClick} title={title} className="inline-flex items-center justify-center rounded-md p-1.5 transition-colors"
-      style={{ color: danger ? "#A94B3D" : C.inkSoft, background: "transparent", border: "none", cursor: "pointer" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = danger ? "#F5E4E0" : C.lineSoft)}
+    <button onClick={onClick} title={title} className="inline-flex items-center justify-center p-1.5 transition-colors"
+      style={{ color: danger ? "#B23A22" : C.inkSoft, background: "transparent", border: "none", borderRadius: 3, cursor: "pointer" }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = danger ? "#F3DFD3" : C.lineSoft)}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
       {children}
     </button>
@@ -417,8 +439,8 @@ function IconBtn({ onClick, children, title, danger }) {
 }
 function PrimaryBtn({ onClick, children, color = C.ink, style = {} }) {
   return (
-    <button onClick={onClick} className="font-body text-sm font-medium inline-flex items-center gap-1.5 px-5 py-3 rounded-full transition-opacity"
-      style={{ background: color, color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 12px 24px rgba(27, 42, 40, 0.12)", ...style }}>
+    <button onClick={onClick} className="font-mono text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-5 py-3 transition-opacity"
+      style={{ background: color, color: "#fff", border: "none", borderRadius: 3, cursor: "pointer", boxShadow: "2px 2px 0 rgba(23,36,44,0.18)", ...style }}>
       {children}
     </button>
   );
@@ -426,8 +448,8 @@ function PrimaryBtn({ onClick, children, color = C.ink, style = {} }) {
 function TextInput({ value, onChange, placeholder, className = "", type = "text" }) {
   return (
     <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className={`font-body text-sm px-4 py-3 rounded-lg outline-none w-full ${className}`}
-      style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink, boxShadow: "inset 0 1px 2px rgba(66,54,40,0.03)" }} />
+      className={`font-body text-sm px-4 py-3 outline-none w-full ${className}`}
+      style={{ border: `1px solid ${C.line}`, borderRadius: 3, background: "#FFFFFF", color: C.ink, boxShadow: "inset 0 1px 2px rgba(23,36,44,0.04)" }} />
   );
 }
 function Progress({ label, value, target, color, unit }) {
@@ -438,8 +460,8 @@ function Progress({ label, value, target, color, unit }) {
         <span className="font-body text-xs" style={{ color: C.inkSoft }}>{label}</span>
         <span className="font-mono text-xs" style={{ color: C.ink }}>{Math.round(value)} <span style={{ color: C.inkFaint }}>/ {Math.round(target)}{unit}</span></span>
       </div>
-      <div className="rounded-full w-full" style={{ height: 6, background: C.lineSoft }}>
-        <div style={{ height: 6, borderRadius: 999, width: `${pct}%`, background: color }} />
+      <div className="w-full" style={{ height: 6, borderRadius: 2, background: C.lineSoft }}>
+        <div style={{ height: 6, borderRadius: 2, width: `${pct}%`, background: color }} />
       </div>
     </div>
   );
@@ -518,9 +540,9 @@ function RecettesTab({ recipes, setRecipes, addToGrocery }) {
           </p>
           <textarea value={importText} onChange={(e) => setImportText(e.target.value)} rows={6}
             className="font-mono text-xs w-full px-4 py-3 rounded-lg outline-none mb-2"
-            style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}
+            style={{ border: "none", background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }}
             placeholder={"Poulet au riz;4;450;40;10;38;poulet:600:g,riz:300:g\nSalade de pois chiches;2;380;35;14;18"} />
-          {importError && <p className="font-body text-xs mb-2" style={{ color: "#A94B3D" }}>{importError}</p>}
+          {importError && <p className="font-body text-xs mb-2" style={{ color: "#B23A22" }}>{importError}</p>}
           <div className="flex gap-2">
             <PrimaryBtn color={C.nutrition} onClick={parseImport}><Check size={14} /> Importer</PrimaryBtn>
             <PrimaryBtn color={C.inkFaint} onClick={() => { setShowImport(false); setImportText(""); setImportError(""); }}><X size={14} /> Annuler</PrimaryBtn>
@@ -552,7 +574,7 @@ function RecettesTab({ recipes, setRecipes, addToGrocery }) {
             className="font-body text-xs mb-4" style={{ color: C.nutrition, background: "none", border: "none", cursor: "pointer" }}>+ ajouter un ingrédient</button>
           <label className="font-mono text-xs uppercase tracking-widest mb-2 block" style={{ color: C.inkFaint }}>Préparation</label>
           <textarea value={editing.etapes} onChange={(e) => setEditing({ ...editing, etapes: e.target.value })} rows={3}
-            className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-4" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }} placeholder="Étapes de préparation..." />
+            className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-4" style={{ border: "none", background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }} placeholder="Étapes de préparation..." />
           <div className="flex gap-2">
             <PrimaryBtn color={C.nutrition} onClick={save}><Check size={15} /> Enregistrer</PrimaryBtn>
             <PrimaryBtn color={C.inkFaint} onClick={() => setEditing(null)}><X size={15} /> Annuler</PrimaryBtn>
@@ -576,10 +598,10 @@ function RecettesTab({ recipes, setRecipes, addToGrocery }) {
               </div>
             </div>
             <div className="flex gap-3 mt-3 flex-wrap">
-              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.nutritionSoft, color: C.nutrition }}>{r.kcal} kcal</span>
-              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>G {r.glucides}g</span>
-              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>L {r.lipides}g</span>
-              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>P {r.proteines}g</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.nutritionSoft, color: C.nutrition }}>{r.kcal} kcal</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.lineSoft, color: C.inkSoft }}>G {r.glucides}g</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.lineSoft, color: C.inkSoft }}>L {r.lipides}g</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.lineSoft, color: C.inkSoft }}>P {r.proteines}g</span>
             </div>
             {expanded === r.id && (
               <div className="mt-3" style={{ paddingTop: 12, borderTop: `1px solid ${C.lineSoft}` }}>
@@ -686,9 +708,9 @@ function CaloriesTab({ recipes, setRecipes }) {
             <div style={{ position: "relative" }}>
               <TextInput value={r.query} onChange={(v) => onQueryChange(r.id, v)} placeholder="Ingrédient (ex : riz, poulet, yaourt nature...)" />
               {r.loading && <div className="font-mono text-xs mt-1" style={{ color: C.inkFaint }}>recherche…</div>}
-              {!r.loading && r.error && <div className="font-mono text-xs mt-1" style={{ color: "#A94B3D" }}>{r.error}</div>}
+              {!r.loading && r.error && <div className="font-mono text-xs mt-1" style={{ color: "#B23A22" }}>{r.error}</div>}
               {r.results.length > 0 && (
-                <div className="mt-1 rounded-lg overflow-hidden" style={{ border: `1px solid ${C.line}`, background: C.paper, boxShadow: "0 6px 16px rgba(45,62,95,0.1)", position: "absolute", zIndex: 5, width: "100%" }}>
+                <div className="mt-1 rounded-lg overflow-hidden" style={{ border: `1px solid ${C.line}`, background: C.paper, boxShadow: "0 6px 16px rgba(23,36,44,0.1)", position: "absolute", zIndex: 5, width: "100%" }}>
                   {r.results.map((p, i) => (
                     <button key={p.code || i} onClick={() => selectProduct(r.id, p)} className="font-body text-xs w-full text-left px-3 py-2"
                       style={{ background: "none", border: "none", cursor: "pointer", display: "block", borderBottom: i < r.results.length - 1 ? `1px solid ${C.lineSoft}` : "none", color: C.inkSoft }}>
@@ -704,10 +726,10 @@ function CaloriesTab({ recipes, setRecipes }) {
           </div>
           {r.selected && (
             <div className="flex gap-2 flex-wrap">
-              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.nutritionSoft, color: C.nutrition }}>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.nutritionSoft, color: C.nutrition }}>
                 {Math.round((r.selected.kcal100 * (Number(r.qte) || 0)) / 100)} kcal pour {r.qte || 0} g
               </span>
-              <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>{Math.round(r.selected.kcal100)} kcal/100g</span>
+              <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.lineSoft, color: C.inkSoft }}>{Math.round(r.selected.kcal100)} kcal/100g</span>
             </div>
           )}
         </Card>
@@ -718,10 +740,10 @@ function CaloriesTab({ recipes, setRecipes }) {
       <Card style={{ padding: 20 }}>
         <div className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: C.inkFaint }}>Total</div>
         <div className="flex gap-3 mt-1 mb-4 flex-wrap">
-          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.nutritionSoft, color: C.nutrition }}>{Math.round(totals.kcal)} kcal</span>
-          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>G {Math.round(totals.glucides)}g</span>
-          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>L {Math.round(totals.lipides)}g</span>
-          <span className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: C.lineSoft, color: C.inkSoft }}>P {Math.round(totals.proteines)}g</span>
+          <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.nutritionSoft, color: C.nutrition }}>{Math.round(totals.kcal)} kcal</span>
+          <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.lineSoft, color: C.inkSoft }}>G {Math.round(totals.glucides)}g</span>
+          <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.lineSoft, color: C.inkSoft }}>L {Math.round(totals.lipides)}g</span>
+          <span className="font-mono text-xs px-3 py-1.5 rounded-sm" style={{ background: C.lineSoft, color: C.inkSoft }}>P {Math.round(totals.proteines)}g</span>
         </div>
         <div className="grid grid-cols-2 gap-3 items-end mb-4">
           <div>
@@ -780,7 +802,7 @@ function CoursesTab({ grocery, setGrocery }) {
           </p>
           <textarea value={importText} onChange={(e) => setImportText(e.target.value)} rows={5}
             className="font-mono text-xs w-full px-4 py-3 rounded-lg outline-none mb-2"
-            style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}
+            style={{ border: "none", background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }}
             placeholder={"Pommes;6;pièces\nRiz;1;kg\nLait"} />
           <div className="flex gap-2">
             <PrimaryBtn color={C.courses} onClick={parseImport}><Check size={14} /> Importer</PrimaryBtn>
@@ -945,7 +967,7 @@ function QuantitesTab({ quantities, setQuantities, quantityMeta, setQuantityMeta
         <div className="grid quantity-add-form gap-2" style={{ gridTemplateColumns: "minmax(180px, 1fr) 180px auto" }}>
           <TextInput value={newProduct} onChange={setNewProduct} placeholder="Ex. Quinoa, avocat..." />
           <select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} className="font-body text-sm px-4 py-3 rounded-lg outline-none"
-            style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>
+            style={{ border: `1px solid ${C.line}`, background: "#F2F5EE", color: C.ink }}>
             {allCategories.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
           </select>
           <PrimaryBtn color={C.courses} onClick={saveProduct}>{editingProductId ? <><Check size={15} /> Enregistrer</> : <><Plus size={15} /> Ajouter</>}</PrimaryBtn>
@@ -970,7 +992,7 @@ function QuantitesTab({ quantities, setQuantities, quantityMeta, setQuantityMeta
               return (
                 <div key={key} className="grid quantity-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
                   <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0"><span className="font-body text-sm block" style={{ color: C.ink }}>{product}</span><div className="flex items-center gap-1 mt-1"><select value={meta[key]?.etat || "sec"} onChange={(event) => setPreparation(key, "etat", event.target.value)} className="font-mono text-xs rounded-sm" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.inkSoft, padding: "3px 4px" }}><option value="sec">sec</option><option value="cuit">cuit</option></select><span className="font-mono text-xs" style={{ color: C.inkFaint }}>ratio sec/cuit</span><input value={meta[key]?.ratio || ""} onChange={(event) => setPreparation(key, "ratio", event.target.value)} placeholder="1:2,5" className="font-mono text-xs rounded-sm outline-none" style={{ width: 54, padding: "3px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.inkSoft }} /></div></div>
+                    <div className="min-w-0"><span className="font-body text-sm block" style={{ color: C.ink }}>{product}</span><div className="flex items-center gap-1 mt-1"><select value={meta[key]?.etat || "sec"} onChange={(event) => setPreparation(key, "etat", event.target.value)} className="font-mono text-xs rounded-sm" style={{ border: `1px solid ${C.line}`, background: "#F2F5EE", color: C.inkSoft, padding: "3px 4px" }}><option value="sec">sec</option><option value="cuit">cuit</option></select><span className="font-mono text-xs" style={{ color: C.inkFaint }}>ratio sec/cuit</span><input value={meta[key]?.ratio || ""} onChange={(event) => setPreparation(key, "ratio", event.target.value)} placeholder="1:2,5" className="font-mono text-xs rounded-sm outline-none" style={{ width: 54, padding: "3px 4px", border: `1px solid ${C.line}`, background: "#F2F5EE", color: C.inkSoft }} /></div></div>
                     <span className="flex-shrink-0">
                       <IconBtn onClick={() => editProduct(custom.find((item) => item.category === category.name && item.nom === product) || { id: `default:${category.name}:${product}`, nom: product, category: category.name })} title="Modifier cet aliment"><span className="font-mono text-xs">éd.</span></IconBtn>
                       <IconBtn danger onClick={() => removeProduct(category.name, product)} title="Supprimer cet aliment"><Trash2 size={13} /></IconBtn>
@@ -983,7 +1005,7 @@ function QuantitesTab({ quantities, setQuantities, quantityMeta, setQuantityMeta
                     <input key={profileId} aria-label={`${product} ${profileName}`} value={getQuantity(key, profileId)}
                       onChange={(event) => setQuantity(key, profileId, event.target.value)} placeholder="ex. 75 g"
                       className="font-mono text-sm text-center rounded-sm outline-none"
-                      style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color }} />
+                      style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#F2F5EE", color }} />
                   ))}
                 </div>
               );
@@ -1068,12 +1090,12 @@ function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, custom
         <Card style={{ padding: 16, marginBottom: 16 }}>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Nom de la machine</label><TextInput value={machineForm.nom} onChange={(value) => setMachineForm({ ...machineForm, nom: value })} placeholder="Ex. Presse à cuisses" /></div>
-            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Catégorie</label><select value={machineForm.category} onChange={(event) => setMachineForm({ ...machineForm, category: event.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.ink }}>{machineCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
+            <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>Catégorie</label><select value={machineForm.category} onChange={(event) => setMachineForm({ ...machineForm, category: event.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none" style={{ border: `1px solid ${C.line}`, background: "#F2F5EE", color: C.ink }}>{machineCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>{profiles.p1.name} (kg)</label><TextInput type="number" value={machineForm.poidsP1} onChange={(value) => setMachineForm({ ...machineForm, poidsP1: value })} placeholder="Ex. 35" /></div>
             <div><label className="font-mono text-xs" style={{ color: C.inkFaint }}>{profiles.p2.name} (kg)</label><TextInput type="number" value={machineForm.poidsP2} onChange={(value) => setMachineForm({ ...machineForm, poidsP2: value })} placeholder="Ex. 25" /></div>
           </div>
           <label className="font-mono text-xs" style={{ color: C.inkFaint }}>Réglages</label>
-          <textarea value={machineForm.reglages || ""} onChange={(event) => setMachineForm({ ...machineForm, reglages: event.target.value })} rows={2} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-3 mt-1" style={{ border: `1px solid ${C.line}`, background: "#FFFCF6" }} placeholder="Position du siège, amplitude..." />
+          <textarea value={machineForm.reglages || ""} onChange={(event) => setMachineForm({ ...machineForm, reglages: event.target.value })} rows={2} className="font-body text-sm w-full px-4 py-3 rounded-lg outline-none mb-3 mt-1" style={{ border: `1px solid ${C.line}`, background: "#F2F5EE" }} placeholder="Position du siège, amplitude..." />
           <div className="flex gap-2"><PrimaryBtn color={C.muscu} onClick={saveMachine}><Check size={14} /> Enregistrer</PrimaryBtn><PrimaryBtn color={C.inkFaint} onClick={() => setMachineForm(null)}><X size={14} /> Annuler</PrimaryBtn></div>
         </Card>
       )}
@@ -1092,7 +1114,7 @@ function RepertoireMachinesTab({ machinesByProfile, setMachinesByProfile, custom
             <div className="font-mono text-xs uppercase tracking-widest px-4 py-2" style={{ color: C.muscu, background: `${C.muscu}12`, borderTop: `1px solid ${C.line}` }}>{group.category}</div>
             {group.rows.map((row, index) => <div key={row.key} className="grid machine-table-row gap-2 items-center px-4 py-2.5" style={{ gridTemplateColumns: "minmax(180px, 1fr) 130px 130px", borderTop: index > 0 ? `1px solid ${C.lineSoft}` : "none" }}>
               <div className="flex items-center justify-between gap-2"><span className="font-body text-sm" style={{ color: C.ink }}>{row.nom}</span><span className="flex-shrink-0"><IconBtn onClick={() => openMachineForm(getMachine("p1", row.key) || getMachine("p2", row.key))} title="Modifier la machine"><span className="font-mono text-xs">éd.</span></IconBtn><IconBtn danger onClick={() => removeMachine(row)} title="Supprimer la machine"><Trash2 size={13} /></IconBtn></span></div>
-              {["p1", "p2"].map((profileId) => { const machine = getMachine(profileId, row.key); return <input key={profileId} aria-label={`${row.nom} ${profiles[profileId].name}`} type="text" value={machine?.poids || ""} onChange={(event) => setWeight(profileId, row, event.target.value)} placeholder="ex. 35 kg" className="font-mono text-sm text-center rounded-sm outline-none" style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#FFFCF6", color: C.muscu }} />; })}
+              {["p1", "p2"].map((profileId) => { const machine = getMachine(profileId, row.key); return <input key={profileId} aria-label={`${row.nom} ${profiles[profileId].name}`} type="text" value={machine?.poids || ""} onChange={(event) => setWeight(profileId, row, event.target.value)} placeholder="ex. 35 kg" className="font-mono text-sm text-center rounded-sm outline-none" style={{ width: "100%", padding: "8px 4px", border: `1px solid ${C.line}`, background: "#F2F5EE", color: C.muscu }} />; })}
             </div>)}
           </React.Fragment>)}
         </Card>
@@ -1171,11 +1193,11 @@ function RepasTab({ recipes, meals, setMeals, targets, setTargets }) {
             {form && form.repas === repas && (
               <Card style={{ padding: 16, marginBottom: 10 }}>
                 <div className="flex gap-2 mb-3">
-                  <button onClick={() => setForm({ ...form, mode: "manuel" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.mode === "manuel" ? C.nutrition : C.lineSoft, color: form.mode === "manuel" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.mode === "manuel" ? "0 2px 8px rgba(93,186,165,0.3)" : "none" }}>Manuel</button>
-                  <button onClick={() => setForm({ ...form, mode: "recette" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.mode === "recette" ? C.nutrition : C.lineSoft, color: form.mode === "recette" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.mode === "recette" ? "0 2px 8px rgba(93,186,165,0.3)" : "none" }}>Depuis une recette</button>
+                  <button onClick={() => setForm({ ...form, mode: "manuel" })} className="font-body text-xs px-4 py-2 rounded-sm" style={{ background: form.mode === "manuel" ? C.nutrition : C.lineSoft, color: form.mode === "manuel" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.mode === "manuel" ? "0 2px 8px rgba(47,111,82,0.3)" : "none" }}>Manuel</button>
+                  <button onClick={() => setForm({ ...form, mode: "recette" })} className="font-body text-xs px-4 py-2 rounded-sm" style={{ background: form.mode === "recette" ? C.nutrition : C.lineSoft, color: form.mode === "recette" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.mode === "recette" ? "0 2px 8px rgba(47,111,82,0.3)" : "none" }}>Depuis une recette</button>
                 </div>
                 {form.mode === "recette" ? (
-                  <select value={form.recipeId} onChange={(e) => pickRecipe(e.target.value)} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
+                  <select value={form.recipeId} onChange={(e) => pickRecipe(e.target.value)} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }}>
                     <option value="">Choisir une recette…</option>
                     {recipes.map((r) => <option key={r.id} value={r.id}>{r.nom}</option>)}
                   </select>
@@ -1220,9 +1242,9 @@ function CorpsTab({ entries, setEntries }) {
   const sorted = [...entries].sort((a, b) => (a.date < b.date ? 1 : -1));
   const metricConfigs = [
     { key: "poids", label: "Poids", unit: "kg", color: C.corps },
-    { key: "graisse", label: "Masse grasse", unit: "%", color: "#D77B6B" },
-    { key: "muscle", label: "Masse musculaire", unit: "%", color: "#7897A8" },
-    { key: "eau", label: "Eau", unit: "%", color: "#4E8F78" },
+    { key: "graisse", label: "Masse grasse", unit: "%", color: C.courses },
+    { key: "muscle", label: "Masse musculaire", unit: "%", color: C.muscu },
+    { key: "eau", label: "Eau", unit: "%", color: "#3F8FBF" },
   ];
   const chartGroups = metricConfigs
     .map((metric) => ({
@@ -1378,7 +1400,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines, planningItems,
                   </div>
                   {machines.length > 0 && (
                     <select value="" onChange={(e) => { const m = machines.find((mm) => mm.id === e.target.value); if (!m) return; updateEx(ex.id, { nom: ex.nom || m.nom, series: ex.series.map((s, i) => (i === 0 && !s.poids ? { ...s, poids: m.poids } : s)) }); }}
-                      className="font-mono text-xs px-3 py-2 rounded-lg mb-2" style={{ border: "none", color: C.inkSoft, background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
+                      className="font-mono text-xs px-3 py-2 rounded-lg mb-2" style={{ border: "none", color: C.inkSoft, background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }}>
                       <option value="">↳ insérer un poids du répertoire…</option>
                       {machines.map((m) => <option key={m.id} value={m.id}>{m.nom} — {m.poids ? `${m.poids}kg` : "?"}</option>)}
                     </select>
@@ -1413,7 +1435,7 @@ function MuscuTab({ sessions, setSessions, machines, setMachines, planningItems,
             <Card style={{ padding: 16, marginBottom: 16 }}>
               <div className="flex items-center justify-between mb-3">
                 <span className="font-mono text-xs uppercase tracking-widest" style={{ color: C.inkFaint }}>Progression</span>
-                <select value={trackedEx} onChange={(e) => setTrackedEx(e.target.value)} className="font-body text-sm px-4 py-2 rounded-lg" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
+                <select value={trackedEx} onChange={(e) => setTrackedEx(e.target.value)} className="font-body text-sm px-4 py-2 rounded-lg" style={{ border: "none", background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }}>
                   <option value="">Choisir un exercice…</option>
                   {exerciseNames.map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -1478,8 +1500,8 @@ function PlanningTab({ items, setItems, recipes }) {
       </div>
 
       <div className="flex gap-1 mb-5">
-        <button onClick={() => setView("jours")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "jours" ? C.planning : C.lineSoft, color: view === "jours" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "jours" ? "0 2px 8px rgba(165,124,158,0.3)" : "none" }}>Planning libre</button>
-        <button onClick={() => setView("menu")} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: view === "menu" ? C.planning : C.lineSoft, color: view === "menu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "menu" ? "0 2px 8px rgba(165,124,158,0.3)" : "none" }}>Menu des repas</button>
+        <button onClick={() => setView("jours")} className="font-body text-xs px-4 py-2 rounded-sm" style={{ background: view === "jours" ? C.planning : C.lineSoft, color: view === "jours" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "jours" ? "0 2px 8px rgba(91,107,114,0.3)" : "none" }}>Planning libre</button>
+        <button onClick={() => setView("menu")} className="font-body text-xs px-4 py-2 rounded-sm" style={{ background: view === "menu" ? C.planning : C.lineSoft, color: view === "menu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: view === "menu" ? "0 2px 8px rgba(91,107,114,0.3)" : "none" }}>Menu des repas</button>
       </div>
 
       {view === "menu" ? (
@@ -1542,20 +1564,20 @@ function PlanningTab({ items, setItems, recipes }) {
           <div className="flex gap-1.5 mb-4 flex-wrap">
             {days.map((date, i) => {
               const on = form.dates.has(date);
-              return <button key={date} onClick={() => toggleDay(date)} className="font-mono text-xs px-4 py-2 rounded-lg" style={{ background: on ? C.planning : C.lineSoft, color: on ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: on ? "0 2px 8px rgba(165,124,158,0.3)" : "none" }}>{JOURS[i]}</button>;
+              return <button key={date} onClick={() => toggleDay(date)} className="font-mono text-xs px-4 py-2 rounded-lg" style={{ background: on ? C.planning : C.lineSoft, color: on ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: on ? "0 2px 8px rgba(91,107,114,0.3)" : "none" }}>{JOURS[i]}</button>;
             })}
           </div>
           <div className="flex gap-2 mb-3">
-            <button onClick={() => setForm({ ...form, type: "repas" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.type === "repas" ? C.nutrition : C.lineSoft, color: form.type === "repas" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.type === "repas" ? "0 2px 8px rgba(93,186,165,0.3)" : "none" }}>Repas</button>
-            <button onClick={() => setForm({ ...form, type: "muscu" })} className="font-body text-xs px-4 py-2 rounded-full" style={{ background: form.type === "muscu" ? C.muscu : C.lineSoft, color: form.type === "muscu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.type === "muscu" ? "0 2px 8px rgba(232,156,111,0.3)" : "none" }}>Musculation</button>
+            <button onClick={() => setForm({ ...form, type: "repas" })} className="font-body text-xs px-4 py-2 rounded-sm" style={{ background: form.type === "repas" ? C.nutrition : C.lineSoft, color: form.type === "repas" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.type === "repas" ? "0 2px 8px rgba(47,111,82,0.3)" : "none" }}>Repas</button>
+            <button onClick={() => setForm({ ...form, type: "muscu" })} className="font-body text-xs px-4 py-2 rounded-sm" style={{ background: form.type === "muscu" ? C.muscu : C.lineSoft, color: form.type === "muscu" ? "#fff" : C.inkSoft, border: "none", cursor: "pointer", boxShadow: form.type === "muscu" ? "0 2px 8px rgba(198,135,26,0.3)" : "none" }}>Musculation</button>
           </div>
           {form.type === "repas" && (
-            <select value={form.repasType} onChange={(e) => setForm({ ...form, repasType: e.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
+            <select value={form.repasType} onChange={(e) => setForm({ ...form, repasType: e.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }}>
               {REPAS_TYPES.map((rt) => <option key={rt} value={rt}>{rt}</option>)}
             </select>
           )}
           {form.type === "repas" && recipes.length > 0 && (
-            <select value={form.recipeId} onChange={(e) => setForm({ ...form, recipeId: e.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F8F9FC", boxShadow: "0 2px 8px rgba(45,62,95,0.06)" }}>
+            <select value={form.recipeId} onChange={(e) => setForm({ ...form, recipeId: e.target.value })} className="font-body text-sm w-full px-4 py-3 rounded-lg mb-3" style={{ border: "none", background: "#F2F5EE", boxShadow: "0 2px 8px rgba(23,36,44,0.06)" }}>
               <option value="">— ou saisir un libellé libre —</option>
               {recipes.map((r) => <option key={r.id} value={r.id}>{r.nom}</option>)}
             </select>
@@ -1592,14 +1614,14 @@ function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
 
   return (
     <div>
-      <div className="home-intro mb-6" style={{ padding: "24px 28px", background: `linear-gradient(110deg, ${C.nutritionSoft} 0%, ${C.paper} 72%)`, border: `1px solid ${C.line}`, borderLeft: `5px solid ${C.nutrition}`, borderRadius: 18 }}>
-        <Eyebrow color={C.nutrition}>Bonjour</Eyebrow>
-        <h2 className="font-display text-3xl" style={{ color: C.ink }}>Bonjour {profiles[profileId].name}</h2>
+      <div className="home-intro mb-6" style={{ padding: "24px 28px", background: C.paper, border: `1px solid ${C.line}`, borderLeft: `5px solid ${C.nutrition}`, borderRadius: 3 }}>
+        <Eyebrow color={C.nutrition}>Entrée du jour</Eyebrow>
+        <h2 className="font-display text-2xl" style={{ color: C.ink }}>Bonjour {profiles[profileId].name}</h2>
         <p className="font-body text-sm mt-2" style={{ color: C.inkSoft }}>On avance tranquillement, une habitude à la fois.</p>
         <div className="flex gap-2 mt-4 flex-wrap">
           {["p1", "p2"].map((pid) => (
-            <button key={pid} onClick={() => setProfileId(pid)} className="font-body text-sm px-4 py-2 rounded-full"
-              style={{ background: profileId === pid ? C.nutrition : C.paper, color: profileId === pid ? "#fff" : C.inkSoft, border: `1px solid ${profileId === pid ? C.nutrition : C.line}`, cursor: "pointer", boxShadow: profileId === pid ? "0 4px 10px rgba(78,143,120,0.2)" : "none" }}>
+            <button key={pid} onClick={() => setProfileId(pid)} className="font-mono text-xs uppercase tracking-widest px-4 py-2"
+              style={{ background: profileId === pid ? C.nutrition : "transparent", color: profileId === pid ? "#fff" : C.inkSoft, border: `1px solid ${profileId === pid ? C.nutrition : C.line}`, borderRadius: 3, cursor: "pointer" }}>
               {profiles[pid].name}
             </button>
           ))}
@@ -1612,7 +1634,7 @@ function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
           ["Mesures", bodyCount, C.corps],
           ["Séances", workoutCount, C.muscu],
         ].map(([label, value, color]) => (
-          <Card key={label} style={{ padding: 16, borderTop: `3px solid ${color}` }}>
+          <Card key={label} style={{ padding: 16, borderLeft: `4px solid ${color}`, borderRadius: "0 3px 3px 0" }}>
             <div className="font-mono text-xs uppercase tracking-widest" style={{ color: C.inkFaint }}>{label}</div>
             <div className="font-display text-2xl mt-2" style={{ color }}>{value}</div>
           </Card>
@@ -1623,10 +1645,10 @@ function AccueilTab({ data, profiles, profileId, setProfileId, setTab }) {
         {shortcuts.map((shortcut) => {
           const ShortcutIcon = shortcut.icon;
           return (
-            <button key={shortcut.id} onClick={() => setTab(shortcut.id)} className="font-body text-left rounded-lg p-4"
-              style={{ background: C.paper, border: `1px solid ${C.line}`, color: C.ink, cursor: "pointer", boxShadow: "0 6px 18px rgba(66,54,40,0.05)" }}>
+            <button key={shortcut.id} onClick={() => setTab(shortcut.id)} className="font-body text-left p-4"
+              style={{ background: C.paper, border: `1px solid ${C.line}`, borderRadius: 3, color: C.ink, cursor: "pointer", boxShadow: "2px 2px 0 rgba(23,36,44,0.05)" }}>
               <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center rounded-full" style={{ width: 34, height: 34, color: shortcut.color, background: `${shortcut.color}18` }}><ShortcutIcon size={17} /></span>
+                <span className="flex items-center justify-center" style={{ width: 34, height: 34, borderRadius: 3, color: "#fff", background: shortcut.color }}><ShortcutIcon size={17} /></span>
                 <span className="min-w-0"><strong className="font-body text-sm block">{shortcut.label}</strong><span className="font-mono text-xs" style={{ color: C.inkFaint }}>{shortcut.description}</span></span>
               </div>
             </button>
@@ -1699,20 +1721,20 @@ function App() {
   const needsProfile = ["corps", "muscu", "planning", "quantites", "machines"].includes(tab);
 
   return (
-    <div className="font-body" style={{ minHeight: "100vh", background: `radial-gradient(circle at 8% 0%, rgba(255,255,255,0.7) 0, rgba(255,255,255,0) 30%), linear-gradient(135deg, ${C.bg} 0%, #E5EFEA 100%)` }}>
+    <div className="font-body" style={{ minHeight: "100vh", background: "transparent" }}>
       <div className="app-shell">
         <aside className="sidebar">
           <div className="sidebar-brand mb-6">
-            <div className="font-display text-2xl font-bold" style={{ color: C.ink }}>Carnet</div>
-            <div className="font-mono text-xs mt-1" style={{ color: C.inkFaint }}>prendre soin de soi</div>
+            <div className="font-display text-xl" style={{ color: "#FFFFFF", letterSpacing: "-0.02em" }}>CARNET</div>
+            <div className="font-mono text-xs mt-1" style={{ color: "rgba(233,238,230,0.5)", letterSpacing: "0.06em" }}>№ registre à deux</div>
           </div>
           <nav className="sidebar-nav" aria-label="Navigation principale">
             {TABS.map((t) => {
               const Icon2 = t.icon; const active = tab === t.id;
               return (
-                <button key={t.id} onClick={() => setTab(t.id)} className="font-body text-sm px-4 py-3 inline-flex items-center gap-1.5 rounded-full transition-all"
-                  style={{ color: active ? "#fff" : C.inkSoft, background: active ? t.color : "transparent", border: "none", cursor: "pointer", boxShadow: active ? "0 4px 12px rgba(45,62,95,0.15)" : "none" }}>
-                  <Icon2 size={16} />{t.label}
+                <button key={t.id} onClick={() => setTab(t.id)} className="font-mono text-xs uppercase tracking-widest px-4 py-3 inline-flex items-center gap-2 transition-all"
+                  style={{ color: active ? "#fff" : "rgba(233,238,230,0.62)", background: active ? t.color : "transparent", border: "none", cursor: "pointer", fontWeight: active ? 700 : 400 }}>
+                  <Icon2 size={15} />{t.label}
                 </button>
               );
             })}
@@ -1723,17 +1745,17 @@ function App() {
         <header className="flex items-end justify-between mb-8 flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="font-display text-3xl font-bold" style={{ color: C.ink }}>Carnet</h1>
-              <span title={synced ? "synchronisé" : "synchronisation…"} style={{ width: 9, height: 9, borderRadius: 999, background: synced ? C.nutrition : "#FFB381", display: "inline-block", boxShadow: synced ? "0 0 0 3px rgba(93,186,165,0.2)" : "0 0 0 3px rgba(255,179,129,0.2)" }} />
+              <h1 className="font-display text-3xl" style={{ color: C.ink }}>Carnet</h1>
+              <span title={synced ? "synchronisé" : "synchronisation…"} style={{ width: 9, height: 9, borderRadius: 999, background: synced ? C.nutrition : C.muscu, display: "inline-block", boxShadow: synced ? "0 0 0 3px rgba(47,111,82,0.2)" : "0 0 0 3px rgba(198,135,26,0.2)" }} />
               <IconBtn onClick={exportData} title="Exporter toutes les données (JSON)"><Download size={16} /></IconBtn>
             </div>
             <p className="font-mono text-xs mt-2" style={{ color: C.inkFaint, letterSpacing: "0.08em" }}>TON espace pour prendre soin de toi</p>
           </div>
           {needsProfile && (
-            <div className="flex rounded-full p-1.5" style={{ background: C.paper, border: `1px solid ${C.line}`, boxShadow: "0 5px 14px rgba(66,54,40,0.08)" }}>
+            <div className="flex p-1" style={{ background: C.paper, border: `1px solid ${C.line}`, borderRadius: 3 }}>
               {["p1", "p2"].map((pid) => (
-                <button key={pid} onClick={() => setProfileId(pid)} className="font-body text-sm px-4 py-2 rounded-full transition-all"
-                  style={{ background: profileId === pid ? C.corps : "transparent", color: profileId === pid ? "#fff" : C.inkSoft, boxShadow: profileId === pid ? "0 2px 8px rgba(74,111,165,0.3)" : "none", border: "none", cursor: "pointer" }}>
+                <button key={pid} onClick={() => setProfileId(pid)} className="font-mono text-xs uppercase tracking-widest px-4 py-2 transition-all"
+                  style={{ background: profileId === pid ? C.corps : "transparent", color: profileId === pid ? "#fff" : C.inkSoft, borderRadius: 2, border: "none", cursor: "pointer" }}>
                   <input value={data.profiles[pid].name} readOnly={editingProfile !== pid} title="Double-cliquez pour renommer" onDoubleClick={(e) => { e.stopPropagation(); setEditingProfile(pid); }} onBlur={() => setEditingProfile(null)} onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }} onChange={(e) => update({ profiles: { ...data.profiles, [pid]: { name: e.target.value } } })} onClick={(e) => e.stopPropagation()}
                     className="bg-transparent outline-none text-center" style={{ color: "inherit", font: "inherit", border: "none", width: 96 }} />
                 </button>
